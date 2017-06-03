@@ -7,7 +7,7 @@ import json
 r = Redis(host='redis',port=6379)
 
 def load_data(r):
-    if os.path.exists('output/mirrow-news-ann-distance-20.result')==True:
+    if os.path.exists('output/mirror-news-ann-distance-20.result')==True:
         f = open('output/mirror-news-ann-distance-20.result','r')
     else:
         print("[Warning] Cannot find the latest list of related news. Use the fallback list now. Please run daily_batch.sh to get the latest related news")
