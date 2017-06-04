@@ -1,4 +1,4 @@
-# mirror-related-news-be
+# mirror-related-news-api
 
 * requirements
   * flask
