@@ -11,14 +11,11 @@ import jieba.analyse
 from glob import glob
 import fileinput
 from sklearn import feature_extraction
-from sklearn.feature_extraction.text import TfidfTransformer
-from sklearn.feature_extraction.text import CountVectorizer
 import re
 from functools import partial
 import cPickle as pickle
-import copy
 from sklearn.feature_extraction import DictVectorizer
-
+import os
 
 def extract_from_raw(data_dir, attr_list):
     json_dir = glob(data_dir)
@@ -66,12 +63,26 @@ def extract_from_raw(data_dir, attr_list):
     #df.to_msgpack('news_id_tfidf50_topic_category.msg')
     return df
 
-my_attr = ['title', 'id', 'category']
-new_df = extract_from_raw('data/*', my_attr)
-jieba.load_userdict('dict/moe.dict')
-jieba.analyse.set_stop_words('dict/stopping_words.dict')
-tfidf_50 = partial(jieba.analyse.extract_tags, topK=50, withWeight=True)
-new_df['tags_50_text'] = new_df['text'].apply(tfidf_50)
-#print(new_df.head())
-print("number of rows:",len(new_df))
-new_df.to_msgpack('output/news_id_tfidf50_topic_category.msg')
+def extract_tfidf(source="data/",dest="output/"):
+    if os.path.isdir(source)==False:
+        print "The source folder: '"+source+"' does not exist. You may want to run get_raw_data.py first."    
+        exit()
+    if os.path.isdir(dest)==False:
+        print "The destination folder: '"+dest+"' does not exist."
+        print "Creating...."
+        os.makedirs(dest)
+        print "Done!"
+    
+
+    my_attr = ['title', 'id', 'category']
+    new_df = extract_from_raw(source+'*', my_attr)
+    jieba.load_userdict('dict/moe.dict')
+    jieba.analyse.set_stop_words('dict/stopping_words.dict')
+    tfidf_50 = partial(jieba.analyse.extract_tags, topK=50, withWeight=True)
+    new_df['tags_50_text'] = new_df['text'].apply(tfidf_50)
+    #print(new_df.head())
+    print("number of rows:",len(new_df))
+    new_df.to_msgpack(dest+'news_id_tfidf50_topic_category.msg')
+
+if __name__=="__main__":
+   extract_tfidf()
