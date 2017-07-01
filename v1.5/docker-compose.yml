@@ -1,0 +1,11 @@
+version: '2'
+services:
+  web:
+    build: .
+    ports:
+     - "5000:5000"
+    volumes:
+     - .:/code
+    container_name: "mirror-related-news-api"
+  redis:
+    image: "redis:alpine"
