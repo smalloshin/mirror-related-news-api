@@ -24,38 +24,46 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 import os
+import cPickle as Pickle
 
-if __name__=="__main__":
-    if not os.path.exists("output/news_id_tfidf50_topic_category.msg"):
+
+def get_feature_vectors(source_path = 'output/', model_path='output/'):
+    if not os.path.exists(source_path+"news_id_tfidf50_topic_category.msg"):
         print "[Error] No features available! Execute get_features.py first!"
-        exit()
-    df = pd.read_msgpack('output/news_id_tfidf50_topic_category.msg')
+        print "[Fallback] Get features from fallback.msg!"
+        df = pd.read_msgpack('fallback.msg')
+    else:
+        df = pd.read_msgpack(source_path+'news_id_tfidf50_topic_category.msg')
     fenci_str=[]
     print "number of rows:",len(df)
-    diff_dict=dict()
+    
     for x in df['tags_50_text']:
         keys = ""
         for i in range(len(x)):
             keys = keys + str(x[i][0])
-            diff_dict[keys]=1
             if i!=len(x)-1:
                 keys = keys + " "
         fenci_str.append(keys)
     #fenci_str=df['fenci_str'].tolist() 
     id_list = df['id'].tolist()
     
-    print "len:",len(diff_dict)
-    X = [x for x in diff_dict]
-
     #standard way to use TFIDF in scikit-learn
     print("Making Document Vectors...")
-    vectorizer = CountVectorizer()    
+    cv = CountVectorizer()    
     transformer = TfidfTransformer()
-    tfidf = transformer.fit_transform(vectorizer.fit_transform(fenci_str))
-    word = vectorizer.get_feature_names() 
+    # get the vectorizer which fit 'fenci_str'
+    vectorizer = cv.fit_transform(fenci_str)    
+    # store vectorizer into disk
+    f_pkl = open(model_path+"model.pkl",'w') 
+    Pickle.dump(vectorizer,f_pkl,True)
+    f_pkl.close()
+
+    tfidf = transformer.fit_transform(vectorizer)
     weight = tfidf.toarray()
     print("Done!")   
+    return weight
 
+def ANN(weight,dest='output/'):
     #start ann
     print("Doing ANN...")
     n = len(weight)
@@ -71,14 +79,15 @@ if __name__=="__main__":
             print("Added...."+str(i))
     print("Build Indexing Trees....")
     t.build(5)
-    t.save('output/mirror-news.ann')
+    t.save(dest+'mirror-news.ann')
     print("Done!")
 
     #get ann
     u = AnnoyIndex(f)
-    u.load('output/mirror-news.ann')
+    u.load(dest+'mirror-news.ann')
+    u=t
     k=20
-    g = open('output/mirror-news-ann-distance-20.result','w')
+    g = open(dest+'mirror-news-ann-distance-20.result','w')
     pre_t = time.time()
     for i in range(n):
         news_id = id_list[i]
@@ -93,4 +102,9 @@ if __name__=="__main__":
         if i%100==0:
             print("Processed:"+str(i)+", time passed:"+str(time.time()-pre_t)+"(s)")
             pre_t=time.time()
+    print "The related news are in: "+dest+ "mirror-news-ann-distance-20.result"
     g.close() 
+
+if __name__=="__main__":
+    weight = get_feature_vectors()
+    ANN(weight)
