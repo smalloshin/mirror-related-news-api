@@ -28,9 +28,9 @@ def get_meta_data(url,params):
     return total,page_num
 
 
-def get_recent_data(dest='data/recent/',params={},date=datetime.datetime.today(),date_num=1):
-    if os.path.isdir(dest)==False:
-        os.makedirs(dest)
+def get_recent_data(dest_dir='recent/',params={},date=datetime.datetime.today(),date_num=1):
+    if os.path.isdir(dest_dir)==False:
+        os.makedirs(dest_dir)
     date_nth = date.strftime("%j") 
     url = 'https://api.mirrormedia.mg/posts'
     _,page_num = get_meta_data(url,params)
@@ -49,29 +49,25 @@ def get_recent_data(dest='data/recent/',params={},date=datetime.datetime.today()
 
         data = page.read()
         jsondata = json.loads(data)
-        g = open(dest+'news-page-'+str(i),'w')
+        g = open(dest_dir+'news-page-'+str(i),'w')
         g.write(data) 
 
         for x in jsondata['_items']:
             #Time format: Wed, 05 Jul 2017 09:03:00 GMT
             d_nth = datetime.datetime.strptime(x['publishedDate'],"%a, %d %b %Y %X GMT").strftime("%j")        
-            print d_nth, date_nth
             if d_nth<date_nth:
-                print x['publishedDate']
                 next_flag=False
                 break        
         
         if next_flag==False:
             break
         i=i-1
-        #g = open(dest+'news-page-'+str(i),'w')
-        #g.write(data)            
      
 
-# dest: the folder to place the file; params: the params for url
-def get_raw_data(dest='data/',params={}):
-    if os.path.isdir(dest)==False:
-        os.makedirs(dest)
+# dest_dir: the folder to place the file; params: the params for url
+def get_raw_data(dest_dir='data/',params={}):
+    if os.path.isdir(dest_dir)==False:
+        os.makedirs(dest_dir)
 
     url = 'https://api.mirrormedia.mg/posts'
     _,page_num = get_meta_data(url,params)
@@ -87,7 +83,7 @@ def get_raw_data(dest='data/',params={}):
         except urllib2.HTTPError, e:
             print e.fp.read()
         data = page.read()
-        g = open(dest+'news-page-'+str(i),'w')
+        g = open(dest_dir+'news-page-'+str(i),'w')
         g.write(data)
     print "Created "+str(i)+" files (each of them contains 50 news except the last one.)"
     g.close()
