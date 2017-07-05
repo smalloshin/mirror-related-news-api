@@ -26,14 +26,28 @@ sys.setdefaultencoding('utf-8')
 import os
 import cPickle as Pickle
 
+# get the feature vectors from the whole data
+def get_feature_vectors(source_path = 'output/', pkl_path='output/', mode = "batch"):
+    if mode!="batch" and mode!="recent":
+        print "Mode is wrong!"
+        exit()
 
-def get_feature_vectors(source_path = 'output/', model_path='output/'):
-    if not os.path.exists(source_path+"news_id_tfidf50_topic_category.msg"):
-        print "[Error] No features available! Execute get_features.py first!"
-        print "[Fallback] Get features from fallback.msg!"
-        df = pd.read_msgpack('fallback.msg')
+    if mode=="batch":
+        if not os.path.exists(source_path+"news_id_tfidf50_topic_category.msg"):
+            print "[Error] No features available! Execute get_features.py first!"
+            print "[Fallback] Get features from fallback.msg!"
+            df = pd.read_msgpack('fallback.msg')
+        else:
+            df = pd.read_msgpack(source_path+'news_id_tfidf50_topic_category.msg')
     else:
-        df = pd.read_msgpack(source_path+'news_id_tfidf50_topic_category.msg')
+        # load dataframe
+        if not os.path.exists(source_path+'recent_tfidf_topic_category.msg'):
+            print "[Error] "+source_path+'recent_tfidf_topic_category.msg does not exist!'
+            exit()
+        df = pd.read_msgpack(source_path+'recent_tfidf_topic_category.msg')        
+  
+
+
     fenci_str=[]
     print "number of rows:",len(df)
     
@@ -46,24 +60,34 @@ def get_feature_vectors(source_path = 'output/', model_path='output/'):
         fenci_str.append(keys)
     #fenci_str=df['fenci_str'].tolist() 
     id_list = df['id'].tolist()
-    
+    print fenci_str[0]
+
     #standard way to use TFIDF in scikit-learn
     print("Making Document Vectors...")
-    cv = CountVectorizer()    
+    
+    if mode=="batch":    
+        cv = CountVectorizer()
+    else:
+        # load countvectorizer
+        f_pkl = open(pkl_path+"cv.pkl","r")
+        cv = Pickle.load(f_pkl)    
+    
     transformer = TfidfTransformer()
     # get the vectorizer which fit 'fenci_str'
-    vectorizer = cv.fit_transform(fenci_str)    
-    # store vectorizer into disk
-    f_pkl = open(model_path+"model.pkl",'w') 
-    Pickle.dump(vectorizer,f_pkl,True)
-    f_pkl.close()
-
-    tfidf = transformer.fit_transform(vectorizer)
+    term_doc = cv.fit_transform(fenci_str)    
+    tfidf = transformer.fit_transform(term_doc)
     weight = tfidf.toarray()
+    
+    # save countvectorizer 
+    if mode=="batch":
+        f_pkl = open(pkl_path+"cv.pkl",'w') 
+        Pickle.dump(cv,f_pkl,True)
+        f_pkl.close()
     print("Done!")   
-    return weight
+    return weight, id_list
 
-def ANN(weight,dest='output/'):
+# weight: the feature vectors; id_list: the mapping between index and real id; dest: the output path
+def ANN(weight,id_list,dest='output/'):
     #start ann
     print("Doing ANN...")
     n = len(weight)
@@ -106,5 +130,5 @@ def ANN(weight,dest='output/'):
     g.close() 
 
 if __name__=="__main__":
-    weight = get_feature_vectors()
-    ANN(weight)
+    weight,id_list =  get_feature_vectors(mode="batch")
+    ANN(weight,id_list)
