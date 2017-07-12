@@ -7,20 +7,30 @@ r = Redis(host='localhost',port=6379)
 # this is for docker
 #r = Redis(host='redis',port=6379)
 
-def load_data(r):
-    if os.path.exists('output/mirror-news-ann-distance-20.result')==True:
-        f = open('output/mirror-news-ann-distance-20.result','r')
+def load_data(r,source_dir = "output/", mode="batch"):
+    if not mode in ["batch","recent"]:
+        print "[Error] the mode is not correct!"
+        exit()
+
+    result_filename = "mirror-news-ann-distance-20.result"
+    msg_filename = "news-id-tfidf50-topic-category.msg"
+    if mode == "recent":
+        result_filename = "recent-"+result_filename
+        msg_filename = "recent-"+msg_filename
+
+    if os.path.exists(source_dir+result_filename)==True:
+        f = open(source_dir+result_filename,'r')
     else:
         print("[Warning] Cannot find the latest list of related news. Use the fallback list now. Please run daily_batch.sh to get the latest related news")
-        f = open('fallback.result','r')
+        f = open('fallback/fallback.result','r')
     
     news_dict = dict()
     
-    if os.path.exists('output/news_id_tfidf50_topic_category.msg')==True:
-        df = pd.read_msgpack('output/news_id_tfidf50_topic_category.msg')
+    if os.path.exists(source_dir+msg_filename)==True:
+        df = pd.read_msgpack(source_dir+msg_filename)
     else:
         print("[Warning] Cannot find the latest metadata of related news. Use the fallback metadata now. Please run daily_batch.sh to get the latest metadata")
-        df = pd.read_msgpack('fallback.msg')
+        df = pd.read_msgpack('fallback/fallback.msg')
 
     print("Loading the KNN list...")
     for line in f:
@@ -45,8 +55,8 @@ def load_data(r):
     print "Done!" 
 
 if __name__=="__main__":
-    load_data(r)
-    
+    load_data(r,mode="batch")
+    #load_data(r,mode="recent")
      
 
 
