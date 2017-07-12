@@ -89,4 +89,7 @@ def get_raw_data(dest_dir='data/',params={}):
     g.close()
 
 if __name__=="__main__":
+    # get all data
     get_raw_data()
+    # get recet data
+    # get_recent_data()

@@ -94,5 +94,7 @@ def extract_tfidf(source_dir="data/",msg_dir="output/",mode="batch"):
     new_df.to_msgpack(msg_dir+msg_name)
 
 if __name__=="__main__":
+   # extract tfidf features for all data
    extract_tfidf(mode="batch")
-   extract_tfidf(source_dir="recent/",mode="recent")
+   # extract tfidf features for recent
+   # extract_tfidf(source_dir="recent/",mode="recent")

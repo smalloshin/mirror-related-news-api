@@ -27,7 +27,7 @@ import os
 import cPickle as Pickle
 
 # get the feature vectors from the whole data
-def get_feature_vectors(source_path = 'output/', pkl_path='output/', mode = "batch"):
+def get_feature_vectors(source_dir = 'output/', pkl_dir='output/', mode = "batch"):
     if mode!="batch" and mode!="recent":
         print "Mode is wrong!"
         exit()
@@ -37,13 +37,14 @@ def get_feature_vectors(source_path = 'output/', pkl_path='output/', mode = "bat
     if mode=="recent":
         msg_filename='recent-'+msg_filename
     
-    if not os.path.exists(source_path+msg_filename):
-            print "[Error] No features available! Execute get_features.py first!"
-            print "[Fallback] Get features from fallback.msg!"
-            df = pd.read_msgpack('fallback.msg')
-        else:
-            df = pd.read_msgpack(source_path+msg_filename)
+    if not os.path.exists(source_dir+msg_filename):
+        print "[Error] No features available! Execute get_features.py first!"
+        print "[Fallback] Get features from fallback.msg!"
+        df = pd.read_msgpack('fallback/fallback.msg')
+    else:
+        df = pd.read_msgpack(source_dir+msg_filename)
 
+    print "msg_filename: "+msg_filename
     fenci_str=[]
     print "number of rows:",len(df)
     
@@ -56,34 +57,41 @@ def get_feature_vectors(source_path = 'output/', pkl_path='output/', mode = "bat
         fenci_str.append(keys)
     #fenci_str=df['fenci_str'].tolist() 
     id_list = df['id'].tolist()
-    print fenci_str[0]
 
     #standard way to use TFIDF in scikit-learn
     print("Making Document Vectors...")
     
+    transformer = TfidfTransformer()
+
     if mode=="batch":    
         cv = CountVectorizer()
+        # get the vectorizer which fit 'fenci_str'
+        term_doc = cv.fit_transform(fenci_str)
     else:
         # load countvectorizer
-        f_pkl = open(pkl_path+"cv.pkl","r")
+        f_pkl = open(pkl_dir+"cv.pkl","r")
         cv = Pickle.load(f_pkl)    
-    
-    transformer = TfidfTransformer()
-    # get the vectorizer which fit 'fenci_str'
-    term_doc = cv.fit_transform(fenci_str)    
+        term_doc = cv.transform(fenci_str)    
+
     tfidf = transformer.fit_transform(term_doc)
     fv = tfidf.toarray()
-    
-    # save countvectorizer 
+    print len(fv[0])
+ 
+    # save id_list and countvectorizer 
     if mode=="batch":
-        f_pkl = open(pkl_path+"cv.pkl",'w') 
+        f_pkl = open(pkl_dir+"cv.pkl",'w') 
         Pickle.dump(cv,f_pkl,True)
         f_pkl.close()
-    print("Done!")   
+        f_id_list = open(pkl_dir+"id_list.pkl",'w')
+        Pickle.dump(id_list, f_id_list, True)
+        f_id_list.close()
+
+    print("Done!")
+    print "There are "+str(len(fv))+" feature vectors"   
     return fv, id_list
 
 # weight: the feature vectors; id_list: the mapping between index and real id; dest: the output path
-def ANN(fv,id_list,dest_dir='output/', mode="batch"):
+def ANN(fv,id_list,pkl_dir = 'output/', dest_dir='output/', mode="batch"):
     #start ann
     if not mode in ["batch","recent"]:
         print "[Error] Mode error!"
@@ -104,27 +112,62 @@ def ANN(fv,id_list,dest_dir='output/', mode="batch"):
     print("Build Indexing Trees....")
     t.build(5)
 
-    if mode=='batch':
-        t.save(dest_dir+'mirror-news.ann')
-    else:
-        t.save(dest_dir+'recent-mirror-news.ann')
-    print("Done!")
+    tree_name = 'news-indexing-tree.ann'
 
+    if mode=='recent':
+        tree_name = 'recent-'+tree_name
+
+    t.save(dest_dir + tree_name)
+    print("Save indexing tree: "+ dest_dir + tree_name)
+
+    exit()
+ 
     # in case we need to get ann
     # u = AnnoyIndex(f)
     # u.load(dest+'mirror-news.ann')
-    u=t
     k=20
- 
     output_filename='mirror-news-ann-distance-20.result'
-    if mode=="recent":
+
+    if mode=="batch":
+        u = t
+    elif mode=="recent":
+        u = AnnoyIndex(f)
+        # Load indexing tree from all data
+        if os.path.exists(dest_dir+"news-indexing-tree.ann"):
+            print "Get the indexing tree: "+dest_dir+"news-indexing-tree.ann"
+            u.load(dest_dir+"news-indexing-tree.ann")
+        else:
+            print "File does not exist:"+dest_dir+"news-indexing-tree.ann"
+            print "Load fallback indexing tree"
+            u.load("fallback/fallback.ann")
+        # Load id list from all data
+        if os.path.exists(pkl_dir+"id_list.pkl"):
+            f_pkl = open(pkl_dir+"id_list.pkl",'r')
+            id_list_all = Pickle.load(f_pkl)
+        else:
+            print "Failed to load: "+pkl_dir+"id_list.pkl"
+            print "Load fallback id list"
+            f_pkl = open("fallback/id_list.pkl","r")
+            id_list_all = Pickle.load(f_pkl)
+ 
+        for x in id_list_all:
+            print x
+            break
+
         output_filename= 'recent-'+output_filename
+        print output_filename
+        exit()
 
     g = open(dest_dit+output_filename,'w')
     pre_t = time.time()
+    # generate a list for related news
     for i in range(n):
         news_id = id_list[i]
+        
+        
         knn_news = u.get_nns_by_item(i, k+1, include_distances=True)
+         
+
         knn_list =  knn_news[0]
         dist_list = knn_news[1]
         del(knn_list[0])        
@@ -139,5 +182,11 @@ def ANN(fv,id_list,dest_dir='output/', mode="batch"):
     g.close() 
 
 if __name__=="__main__":
-    fv,id_list =  get_feature_vectors(mode="batch")
+    # get related news from all data
+    #fv,id_list =  get_feature_vectors(mode="batch")
     #ANN(fv,id_list)
+
+    # get related_news from recent data
+    fv,id_list =  get_feature_vectors(mode="recent")
+    #ANN(fv,id_list,mode="recent")
+    
