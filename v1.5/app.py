@@ -97,6 +97,7 @@ def make_dict(news_ids_list,k,debug,news_dict):
 if __name__ == '__main__':
     app.run(
         host="0.0.0.0",
+	port=8080,
         debug=True
     )
 

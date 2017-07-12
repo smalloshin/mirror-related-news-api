@@ -18,5 +18,5 @@ RUN set -x \
     && conda install -c conda-forge jieba=0.38 \
     && pip install -r requirements.txt
 
-EXPOSE 5000
+EXPOSE 8080
 CMD ["python", "app.py"]
