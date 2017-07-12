@@ -63,7 +63,7 @@ def extract_from_raw(data_dir, attr_list):
     #df.to_msgpack('news_id_tfidf50_topic_category.msg')
     return df
 
-def extract_tfidf(source_dir="data/",msg_dir="output/",mode="batch"):
+def extract_features(source_dir="data/",msg_dir="output/",mode="batch"):
     if not mode in ["batch","recent"]:
         print "[Error] unknown mode!"
         exit()
@@ -95,6 +95,6 @@ def extract_tfidf(source_dir="data/",msg_dir="output/",mode="batch"):
 
 if __name__=="__main__":
    # extract tfidf features for all data
-   extract_tfidf(mode="batch")
+   extract_features(mode="batch")
    # extract tfidf features for recent
-   # extract_tfidf(source_dir="recent/",mode="recent")
+   # extract_features(source_dir="recent/",mode="recent")

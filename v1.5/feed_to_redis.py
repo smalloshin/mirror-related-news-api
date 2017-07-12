@@ -7,7 +7,7 @@ r = Redis(host='localhost',port=6379)
 # this is for docker
 #r = Redis(host='redis',port=6379)
 
-def load_data(r,source_dir = "output/", mode="batch"):
+def load_data(r=r,source_dir = "output/", mode="batch"):
     if not mode in ["batch","recent"]:
         print "[Error] the mode is not correct!"
         exit()
@@ -33,6 +33,7 @@ def load_data(r,source_dir = "output/", mode="batch"):
         df = pd.read_msgpack('fallback/fallback.msg')
 
     print("Loading the KNN list...")
+
     for line in f:
         news_id, knn_raw = line.replace("\n","").split("\t")
         knn_list = json.loads(knn_raw)
@@ -51,13 +52,12 @@ def load_data(r,source_dir = "output/", mode="batch"):
   
     print "Total: "+str(len(news_dict))    
     print "Feed all to Redis..."
+    # if you find error msg: MISCONF Redis is configured to save RDB snapshots, 
+    # try this on redis-cli: config set stop-writes-on-bgsave-error no
     r.hmset('news_dict',news_dict)
     print "Done!" 
 
 if __name__=="__main__":
-    load_data(r,mode="batch")
+    load_data(mode="batch")
     #load_data(r,mode="recent")
-     
-
-
 
