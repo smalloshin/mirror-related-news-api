@@ -63,14 +63,22 @@ def extract_from_raw(data_dir, attr_list):
     #df.to_msgpack('news_id_tfidf50_topic_category.msg')
     return df
 
-def extract_tfidf(source_dir="data/",dest_dir="output/",dest_name="need_name_it_tfidf50_topic_category.msg"):
+def extract_tfidf(source_dir="data/",msg_dir="output/",mode="batch"):
+    if not mode in ["batch","recent"]:
+        print "[Error] unknown mode!"
+        exit()
+
+    msg_name="news-id-tfidf50-topic-category.msg"
+    if mode=="recent":
+        msg_name="recent-"+msg_name
+
     if os.path.isdir(source_dir)==False:
         print "The source folder: '"+source_dir+"' does not exist. You may want to run get_raw_data.py first."    
         exit()
-    if os.path.isdir(dest_dir)==False:
-        print "The destination folder: '"+dest_dir+"' does not exist."
+    if os.path.isdir(msg_dir)==False:
+        print "The folder to store msg file: '"+msg_dir+"' does not exist."
         print "Creating...."
-        os.makedirs(dest_dir)
+        os.makedirs(msg_dir)
         print "Done!"
     
 
@@ -83,8 +91,8 @@ def extract_tfidf(source_dir="data/",dest_dir="output/",dest_name="need_name_it_
     #print(new_df.head())
     print("number of rows:",len(new_df))
     print new_df.head()
-    new_df.to_msgpack(dest_dir+dest_name)
+    new_df.to_msgpack(msg_dir+msg_name)
 
 if __name__=="__main__":
-   extract_tfidf(dest_name='news_id_tfidf50_topic_category.msg')
-   #extract_tfidf(source_dir="recent/",dest_name="recent_tfidf_topic_category.msg")
+   extract_tfidf(mode="batch")
+   extract_tfidf(source_dir="recent/",mode="recent")
