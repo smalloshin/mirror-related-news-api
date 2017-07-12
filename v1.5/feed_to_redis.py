@@ -3,9 +3,9 @@ import os
 import pandas as pd
 import json
 
-r = Redis(host='localhost',port=6379)
+#r = Redis(host='localhost',port=6379)
 # this is for docker
-#r = Redis(host='redis',port=6379)
+r = Redis(host='redis',port=6379)
 
 def load_data(r=r,source_dir = "output/", mode="batch"):
     if not mode in ["batch","recent"]:
