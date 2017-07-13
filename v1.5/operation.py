@@ -10,9 +10,12 @@ import os
 
 def micro_batch():
     print "**** [Step 1] Clean old data and prepare directories ****"
-    shutil.rmtree('recent/')
-    os.makedirs('recent/')
-    os.makedirs('output/')    
+    try:
+        shutil.rmtree('recent/')
+        os.makedirs('recent/')
+        os.makedirs('output/')
+    except:
+        pass
     print "**** [Step 2] Crawl news articles ****"
     grd.get_recent_data()
     print "**** [Step 3] Compute features for each news articles ****"
@@ -27,9 +30,12 @@ def micro_batch():
 
 def daily_batch():
     print "**** [Step 1] Clean old data and prepare directories ****"
-    shutil.rmtree('data/')
-    os.makedirs('data/')
-    os.makedirs('output/') 
+    try:
+        shutil.rmtree('data/')
+        os.makedirs('data/')
+        os.makedirs('output/') 
+    except:
+        pass
     print "**** [Step 2] Crawl news articles ****"
     grd.get_raw_data()
     print "**** [Step 3] Compute features for each news articles ****"
