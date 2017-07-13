@@ -60,7 +60,7 @@ if __name__=="__main__":
             micro_batch()
         except Exception as e:
             f.write("[Exception] "+str(e)+"\n")
-            exit()
+            pass
         f.write("[Micro Batch] " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " -- Micro batch is done!\n")
         h = int(datetime.now().strftime("%H"))
         if h==daily_batch_hour:
@@ -70,9 +70,9 @@ if __name__=="__main__":
                 daily_batch()    
             except Exception as e:
                 f.write("[Exception] "+str(e)+"\n")
-                exit()
+                pass
             f.write("[Daily Batch] " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " -- Daily batch is done!\n")
-        
+        f.close() 
  
 
 

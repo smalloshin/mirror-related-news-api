@@ -83,6 +83,7 @@ def extract_features(source_dir="data/",msg_dir="output/",mode="batch"):
     
 
     my_attr = ['title', 'id', 'category']
+    print source_dir
     new_df = extract_from_raw(source_dir+'*', my_attr)
     jieba.load_userdict('dict/moe.dict')
     jieba.analyse.set_stop_words('dict/stopping_words.dict')
