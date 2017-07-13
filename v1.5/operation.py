@@ -50,7 +50,7 @@ def daily_batch():
 
 if __name__=="__main__":
     micro_batch_period = 180
-    daily_batch_hour = 3
+    daily_batch_hour = 19
    
     while True:
         f = open('operation.log','a')
@@ -73,7 +73,7 @@ if __name__=="__main__":
                 pass
             f.write("[Daily Batch] " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " -- Daily batch is done!\n")
         f.close() 
- 
+        time.sleep(30) 
 
 
 
