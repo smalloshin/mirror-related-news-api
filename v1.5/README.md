@@ -61,18 +61,18 @@ $ docker exec mirror-related-news-api python operation.sh
  此部分共包含daily batch和micro batch兩個功能，由四個檔案所構成。其流程圖如下：
 <img src="related-news-api-offline.png"/> 
 
- - get_raw_data.py
-     輸入：[daily batch] 全部的新聞 ([micro batch]今天所有的新聞)
-     輸出：所有新聞文章的json檔
- - extract_features.py
-     輸入：所有新聞文章的json檔
-     輸出：每個文章的{(重要斷詞i,TFIDF分數i)}
- - get_related_news.py
-     輸入：[daily batch] 每個文章的{(重要斷詞i,TFIDF分數i)}  ([micro batch] daily batch產生的相關新聞、今天每個文章的{(重要斷詞i,TFIDF分數i)}
-     輸出：每個文章的相關新聞
- - feed_to_redis.py
-     輸入：每個文章的相關新聞
-     輸出：Redis中的(key, value)-pair   (key = 新聞，value=相關新聞)
+ * get_raw_data.py
+     * 輸入：[daily batch] 全部的新聞 ([micro batch]今天所有的新聞)
+     * 輸出：所有新聞文章的json檔
+ * extract_features.py
+     * 輸入：所有新聞文章的json檔
+     * 輸出：每個文章的{(重要斷詞i,TFIDF分數i)}
+ * get_related_news.py
+     * 輸入：[daily batch] 每個文章的{(重要斷詞i,TFIDF分數i)}  ([micro batch] daily batch產生的相關新聞、今天每個文章的{(重要斷詞i,TFIDF分數i)}
+     * 輸出：每個文章的相關新聞
+ * feed_to_redis.py
+     * 輸入：每個文章的相關新聞
+     * 輸出：Redis中的(key, value)-pair   (key = 新聞，value=相關新聞)
  
 由於其流程類似，因此在程式中利用mode來控制每一個程式要以mode = batch (daily-batch)來執行還是以mode = recent (micro-batch)來執行。
  
