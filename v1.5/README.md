@@ -59,7 +59,6 @@ $ docker exec mirror-related-news-api python operation.sh
 
 <h3 id=3.1>3.1. Offline部份</h3>
  此部分共包含daily batch和micro batch兩個功能，由四個檔案所構成。其流程圖如下：
- ![image](https://github.com/smalloshin/mirror-related-news-api/raw/master/v1.5/related-news-api-offline.png?raw=true)
 <img src="related-news-api-offline.png"/> 
 
  - get_raw_data.py
@@ -79,7 +78,7 @@ $ docker exec mirror-related-news-api python operation.sh
  
 <h3 id=3.2>3.2. Online部份</h3>
 此部分由Flask和Redis構成。Flask為API server，而Redis儲存目前已經計算出結果的相關新聞列表。其sequence diagram如下：
-![image](https://github.com/smalloshin/mirror-related-news-api/raw/master/v1.5/related-news-api-online.png)
+<img src="related-news-api-online.png"/>
 
 <h2 id=4>4. 技術細節</h2>
 <h3 id=4.1>4.1. 公用程式</h3>
