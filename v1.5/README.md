@@ -17,6 +17,7 @@
 
 <h2 id=1> 1. API使用方法 </h2>
 <h3 id=1.1>1.1. 呼叫格式</h3>
+
 ```sh
 http://{api_host}:8080/related_news?{params_1}={value_1}&{param_2}={value_2}...
 ```
@@ -59,7 +60,7 @@ $ docker exec mirror-related-news-api python operation.sh
 <h3 id=3.1>3.1. Offline部份</h3>
  此部分共包含daily batch和micro batch兩個功能，由四個檔案所構成。其流程圖如下：
  ![image](https://github.com/smalloshin/mirror-related-news-api/raw/master/v1.5/related-news-api-offline.png?raw=true)
-<img src="related-news-api-offline.png/> 
+<img src="related-news-api-offline.png"/> 
 
  - get_raw_data.py
      輸入：[daily batch] 全部的新聞 ([micro batch]今天所有的新聞)
