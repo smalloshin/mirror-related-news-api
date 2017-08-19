@@ -58,7 +58,7 @@ $ docker exec mirror-related-news-api python operation.sh
 
 <h3 id=3.1>3.1. Offline部份</h3>
  此部分共包含daily batch和micro batch兩個功能，由四個檔案所構成。其流程圖如下：
- ![image](https://github.com/smalloshin/mirror-related-news-api/raw/master/v1.5/related-news-api-offline.png)
+ ![image](https://github.com/smalloshin/mirror-related-news-api/raw/master/v1.5/related-news-api-offline.png?raw=true)
  
 
  - get_raw_data.py
