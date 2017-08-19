@@ -83,14 +83,15 @@ $ docker exec mirror-related-news-api python operation.sh
 <h2 id=4>4. 技術細節</h2>
 <h3 id=4.1>4.1. 公用程式</h3>
 以下為使用者經常用到的公用程式：
- * api-start.sh
+
+ - **api-start.sh**
 為啟動API的檔案。用來啟動docker以及將初始資料放入快取中。啟動方法如上述，必須要有執行docker之權限。
- * daily_batch.sh
+ - **daily_batch.sh**
 利用目前所有新聞的文章做計算，求算出最相關文章。需要時間較長。
 ```sh
 $ bash daily_batch.sh
 ```
- * operation.py
+ - **operation.py**
 此檔案為在docker啟動後負責定期更新的檔案。初始設定為3分鐘執行一次micro batch以抓取今天的文章來算最相關新聞，每24小時執行一次daily batch以用網站上所有文章計算最相關新聞。以下為將其放入背景執行的方式：
 ```sh
 $ python operation.py &
