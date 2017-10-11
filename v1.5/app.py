@@ -57,8 +57,7 @@ def make_dict(news_ids_list,k,debug):
     # all_knns.values() ==> [[knn_list1],...]
     knn_keys = []
     for x in all_knns.values():
-        for y in x:
-            knn_keys.append(y)
+        knn_keys+=x
 
     knn_articles = r.hmget('news_dict',knn_keys)
 
