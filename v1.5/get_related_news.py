@@ -48,7 +48,7 @@ def get_feature_vectors(source_dir = 'output/', pkl_dir='output/', mode = "batch
     fenci_str=[]
     print "number of rows:",len(df)
     
-    for x in df['tags_50_text']:
+    for x in df['tags_text']:
         keys = ""
         for i in range(len(x)):
             keys = keys + str(x[i][0])
