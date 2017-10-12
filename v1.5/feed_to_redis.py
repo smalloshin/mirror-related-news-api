@@ -43,7 +43,7 @@ def load_data(r=r,source_dir = "output/", mode="batch"):
         this_df = df[df.id==news_id]
         n_cat = (this_df.category).tolist()
         n_title = (this_df.title).tolist()
-        n_features = (this_df.tags_50_text).tolist()
+        n_features = (this_df.tags_text).tolist()
 
         news_dict[news_id]['_id']=news_id
         news_dict[news_id]['title']=n_title
