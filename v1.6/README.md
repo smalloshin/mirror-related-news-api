@@ -1,4 +1,9 @@
-<h1> RELATED NEWS API v1.5 </h1> 
+<h1> RELATED NEWS API v1.6 </h1> 
+
+版本更新：
+ * 取消docker配置
+ * 更改feed_to_redis.py的邏輯為：直接將相關新聞資訊放入Redis的字典中以利前端呼叫。
+ * Redis中的字典格式為：news_id --> json string
 
 此為相關新聞API的說明文件。此文件包含了此套件的使用方法、API的設計邏輯以及技術細節。以下為目錄：
 
