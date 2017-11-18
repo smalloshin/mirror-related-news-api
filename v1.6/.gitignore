@@ -1,0 +1,6 @@
+data/
+output/
+recent/
+*.swp
+*.pyc
+*.log
