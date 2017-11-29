@@ -17,10 +17,14 @@ def get_facets(df,r_id,fields = ['_id','features','category','title']):
     r_dict = dict()
     that_df = df[df.id==r_id]
     r_dict['_id'] = r_id
-    r_dict['category'] = (that_df.category).tolist()[0]
+    r_dict['categories'] = (that_df.category).tolist()[0]
     r_dict['title'] = (that_df.title).tolist()[0]
     r_dict['features'] = (that_df.tags_text).tolist()[0]
-    r_dict['url'] = "https://api.mirrormedia.mg/posts/"+r_id
+    r_dict['slug'] = (that_df.slug).tolist()[0]
+    r_dict['heroImage'] = (that_df.heroImage).tolist()[0]
+    r_dict['sections'] = (that_df.sections).tolist()[0]
+    r_dict['style'] = (that_df['style']).tolist()[0]
+    r_dict['href'] = "posts/"+r_id
     return r_dict
 
 def load_data(r=r,source_dir = "output/", mode="batch"):
@@ -52,7 +56,7 @@ def load_data(r=r,source_dir = "output/", mode="batch"):
     for line in f:
         news_id, knn_raw = line.replace("\n","").split("\t")
         knn_list = json.loads(knn_raw)
-        
+       
         r_news = []
         for (r_id,_) in knn_list:
             r_dict = get_facets(df,r_id)

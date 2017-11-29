@@ -1,3 +1,4 @@
+import sys
 import re,urllib2
 from bs4 import BeautifulSoup
 from urllib import urlopen
@@ -17,9 +18,23 @@ import cPickle as pickle
 from sklearn.feature_extraction import DictVectorizer
 import os
 
-def extract_from_raw(data_dir, attr_list):
+def extract_from_raw(data_dir, attr_list, first_time):
     json_dir = glob(data_dir)
-    
+    json_files = glob(data_dir+"news-page-*")
+
+    max_page = 1
+    for json_file_name in json_files:
+        current_page = int(json_file_name.split('news-page-')[1])
+        if max_page<current_page:
+            max_page = current_page
+
+    target_page_num = 10000/50
+    if first_time==False:
+           for json_file_name in json_files:
+               index = int(json_file_name.split('news-page-')[1])
+               if index < max_page-target_page_num:
+                   json_files.remove(json_file_name)
+
     reChinese = re.compile('[\x80-\xff]+')
     word_list = list()
     for attr in attr_list:
@@ -29,7 +44,19 @@ def extract_from_raw(data_dir, attr_list):
             category_list = list()
         elif attr == 'id':
             id_list = list()
-    for json_file_name in json_dir:
+        elif attr == 'slug':
+            slug_list = list()
+        elif attr == 'heroImage':
+            heroImage_list = list()
+        elif attr == 'style':
+            style_list = list()
+        elif attr == 'sections':
+            sections_list = list()
+
+
+    
+
+    for json_file_name in json_files:
         with open(json_file_name) as json_file: 
             data = json.load(json_file)
             items = data['_items']
@@ -41,6 +68,17 @@ def extract_from_raw(data_dir, attr_list):
                 category_list.extend(df['categories'].tolist())
             if 'id' in attr_list:
                 id_list.extend(df['_id'].tolist())
+            if 'sections' in attr_list:
+                sections_list.extend(df['sections'].tolist())
+            if 'slug' in attr_list:
+                slug_list.extend(df['slug'].tolist())
+            if 'heroImage' in attr_list:
+                heroImage_list.extend(df['heroImage'].tolist())
+            if 'style' in attr_list:
+                style_list.extend(df['style'].tolist())
+
+
+
             for content in df['content']:
                 if pd.isnull(content):
                     word_list.append(content)
@@ -56,14 +94,14 @@ def extract_from_raw(data_dir, attr_list):
                     sentences = " ".join(chlist)                
                     word_list.append(sentences)
             
-    record_dict = {'id': id_list, 'text': word_list, 'title': title_list, 'category': category_list}
+    record_dict = {'id': id_list, 'text': word_list, 'title': title_list, 'category': category_list,'slug': slug_list, 'heroImage': heroImage_list, 'sections': sections_list,'style': style_list}
     df = pd.DataFrame.from_dict(record_dict)
     nullIndex = pd.isnull(df).any(1).nonzero()[0]
     df.drop(nullIndex, inplace=True)
     #df.to_msgpack('news_id_tfidf50_topic_category.msg')
     return df
 
-def extract_features(source_dir="data/",msg_dir="output/",mode="batch"):
+def extract_features(source_dir="data/",msg_dir="output/",mode="batch",first_time=False):
     if not mode in ["batch","recent"]:
         print "[Error] unknown mode!"
         exit()
@@ -82,9 +120,9 @@ def extract_features(source_dir="data/",msg_dir="output/",mode="batch"):
         print "Done!"
     
 
-    my_attr = ['title', 'id', 'category']
+    my_attr = ['title', 'id', 'category','slug','sections','heroImage','style']
     print source_dir
-    new_df = extract_from_raw(source_dir+'*', my_attr)
+    new_df = extract_from_raw(source_dir+'*', my_attr,first_time)
     jieba.load_userdict('dict/moe.dict')
     jieba.analyse.set_stop_words('dict/stopping_words.dict')
     tfidf_20 = partial(jieba.analyse.extract_tags, topK=20, withWeight=True)
@@ -96,6 +134,10 @@ def extract_features(source_dir="data/",msg_dir="output/",mode="batch"):
 
 if __name__=="__main__":
    # extract tfidf features for all data
-   extract_features(mode="batch")
+   first_time = False
+   if len(sys.argv)>=2 and sys.argv[1].lower()=='true':
+       first_time = True
+   print first_time
+   extract_features(mode="batch",first_time=first_time)
    # extract tfidf features for recent
    # extract_features(source_dir="recent/",mode="recent")

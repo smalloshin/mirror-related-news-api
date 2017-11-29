@@ -4,6 +4,8 @@ import json
 import time
 import os
 import datetime
+import glob
+
 
 hdr = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -65,18 +67,28 @@ def get_recent_data(dest_dir='recent/',params={},date=datetime.datetime.today(),
      
 
 # dest_dir: the folder to place the file; params: the params for url
-def get_raw_data(dest_dir='data/',params={}):
+def get_raw_data(dest_dir='data/',params={}):    
+    last_index = 1
+
     if os.path.isdir(dest_dir)==False:
         os.makedirs(dest_dir)
+    else:
+        filenames = glob.glob(dest_dir+"news-page-*")
+        for x in filenames:
+            current_index = int(x.split('news-page-')[1])
+            if last_index < current_index:
+                last_index = current_index
 
     url = 'https://api.mirrormedia.mg/posts'
     _,page_num = get_meta_data(url,params)
 
-    for i in range(1,page_num):
+
+    print("*** Start crawling news pages ***")
+    for i in range(last_index,page_num):
         target_url = url + "?max_results=50&page=" + str(i)
         #print target_url
         if i%10==0 and i>0:
-            print "Get "+str(i*50)+" news"
+            print "Get page #"+str(i)+"..."
         try:
             req = urllib2.Request(target_url, headers=hdr)
             page = urllib2.urlopen(req)
