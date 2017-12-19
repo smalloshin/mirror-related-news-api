@@ -6,7 +6,9 @@ import json
 # redis connect string
 r = Redis(host='localhost',port=6379)
 
-def get_facets(df,r_id,fields = ['_id','features','category','title']):    
+DF_CACHE = dict()
+
+def get_facets(df,r_id,fields = ['_id','features','category','title']):
     """
     goal: get the data of r_id in dataframe df
     parameters:
@@ -15,7 +17,9 @@ def get_facets(df,r_id,fields = ['_id','features','category','title']):
         3. fields: target fields
     """
     r_dict = dict()
-    that_df = df[df.id==r_id]
+    if not r_id in DF_CACHE:
+        DF_CACHE[r_id] = df[df.id==r_id]
+    that_df = DF_CACHE[r_id]
     r_dict['_id'] = r_id
     r_dict['categories'] = (that_df.category).tolist()[0]
     r_dict['title'] = (that_df.title).tolist()[0]
