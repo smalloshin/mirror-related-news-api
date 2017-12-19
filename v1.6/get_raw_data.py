@@ -79,14 +79,14 @@ def get_raw_data(dest_dir='data/',params={}):
             if last_index < current_index:
                 last_index = current_index
 
-    url = 'https://api.mirrormedia.mg/posts'
+    url = 'https://api.mirrormedia.mg/posts?where={"style":{"$nin":["campaign"]},"isAdvertised":false,"isAdult":false,"state":{"$nin":["invisible"]},"categories":{"$nin":["57fca2f5c9b7a70e004e6df9","57f37a92a89ee20d00cc4a83"]}}&sort=-publishedDate'
     _,page_num = get_meta_data(url,params)
 
 
     print("*** Start crawling news pages ***")
     for i in range(last_index - 1, page_num + 1):
         print("*** Start crawling news pages", i, " ***")
-        target_url = url + '?where={"style":{"$nin":["campaign"]},"isAdvertised":false,"isAdult":false,"state":{"$nin":["invisible"]},"categories":{"$nin":["57fca2f5c9b7a70e004e6df9","57f37a92a89ee20d00cc4a83"]}}&sort=-publishedDate&max_results&page=' + str(i)
+        target_url = url + '&max_results&page=' + str(i)
         #print target_url
         if i%10==0 and i>0:
             print "Get page #"+str(i)+"..."
