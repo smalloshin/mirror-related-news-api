@@ -25,6 +25,7 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 import os
 import cPickle as Pickle
+import multiprocessing.pool
 
 # get the feature vectors from the whole data
 def get_feature_vectors(source_dir = 'output/', pkl_dir='output/', mode = "batch"):
@@ -155,11 +156,11 @@ def ANN(fv,id_list,pkl_dir = 'output/', dest_dir='output/', mode="batch"):
             id_list_all = Pickle.load(f_pkl)
 
     g = open(dest_dir+output_filename,'w')
-    pre_t = time.time()
+    jobinfo = {"time": time.time(), "count": 0}
+
     # generate a list for related news
-    for i in range(n):
-        news_id = id_list[i]
-        
+
+    def ann_job(i):
         knn_news = t.get_nns_by_item(i, k+1, include_distances=True)
         knn_list =  knn_news[0]
         dist_list = knn_news[1]
@@ -167,7 +168,6 @@ def ANN(fv,id_list,pkl_dir = 'output/', dest_dir='output/', mode="batch"):
         del(dist_list[0])
         related_news = [(id_list[knn_list[j]],dist_list[j]) for j in range(len(knn_list))]
 
-           
         if mode == "recent":
             vi = t.get_item_vector(i)
             knn_news_all = u.get_nns_by_vector(v, k, include_distances=True) 
@@ -183,11 +183,19 @@ def ANN(fv,id_list,pkl_dir = 'output/', dest_dir='output/', mode="batch"):
             related_news = sorted(related_news,key=lambda x:x[1])[0:k]
 
         related_news_json = json.dumps(related_news)
+
+        news_id = id_list[i]
         g.write(news_id+"\t"+related_news_json+"\n")
-        if i%100==0:
-            print("Processed:"+str(i)+", time passed:"+str(time.time()-pre_t)+"(s)")
-            pre_t=time.time()
+
+        jobinfo["count"] += 1
+        if jobinfo["count"]%100==0:
+            print("Processed:"+str(jobinfo["count"])+", time passed:"+str(time.time()-jobinfo["time"])+"(s)")
+            jobinfo["time"] = time.time()
+
+    pool = multiprocessing.pool.ThreadPool()
+    pool.map(ann_job, range(n))
     print "The related news are in: "+dest_dir+output_filename
+
     g.close() 
 
 if __name__=="__main__":
