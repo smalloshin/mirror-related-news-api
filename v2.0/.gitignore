@@ -1,0 +1,8 @@
+data/
+intermediate-results/
+recent/
+gcskeyfile.json
+*.swp
+*.pyc
+*.log
+*.swo
