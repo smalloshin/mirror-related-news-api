@@ -1,30 +1,12 @@
-# necessary libraries
-import re,urllib2
-from bs4 import BeautifulSoup
-from urllib import urlopen
-import requests
 import json
 import pandas as pd
-import math
-import cgi
-import jieba
-import jieba.analyse
-from glob import glob
-import fileinput
-from sklearn import feature_extraction
-from sklearn.feature_extraction.text import TfidfTransformer
-from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.neighbors import NearestNeighbors
-import re
-from functools import partial
-import cPickle
 from annoy import AnnoyIndex
 import time
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 import os
-import cPickle as Pickle
 import multiprocessing.pool
 
 # weight: the feature vectors; id_list: the mapping between index and real id; dest: the output path
@@ -46,6 +28,7 @@ def BuildIndexTree(fv,id_list,pkl_dir = 'intermediate-results/', dest_dir='inter
         t.add_item(i,v)
         if i>=500 and i%500==0:
             print("Added...."+str(i))
+
     print("Build Indexing Trees....")
     t.build(5)
 
@@ -135,8 +118,4 @@ if __name__=="__main__":
     from GetFeatureVectors import *
     fv,id_list =  GetFeatureVectors()
     BuildIndexTree(fv,id_list)
-
-    # get related_news from recent data
-    #fv,id_list =  get_feature_vectors(mode="recent")
-    #ANN(fv,id_list,mode="recent")
 
