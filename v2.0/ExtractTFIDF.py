@@ -17,8 +17,9 @@ from functools import partial
 import cPickle as pickle
 from sklearn.feature_extraction import DictVectorizer
 import os
+import time
 
-def extract_from_raw(data_dir, attr_list, first_time):
+def extract_from_raw(data_dir, attr_list, page_limit):
     json_dir = glob(data_dir)
     json_files = glob(data_dir+"news-page-*")
 
@@ -28,16 +29,15 @@ def extract_from_raw(data_dir, attr_list, first_time):
         if max_page<current_page:
             max_page = current_page
 
-    # should revise (since the sort order changes
-    target_page_num = 10000/50
-    if first_time==False:
-           for json_file_name in json_files:
-               index = int(json_file_name.split('news-page-')[1])
-               if index < max_page-target_page_num:
-                   json_files.remove(json_file_name)
+    temp_json_files = []
+    for json_file_name in json_files:
+        index = int(json_file_name.split('news-page-')[1])
+        if index <= page_limit:
+            temp_json_files.append(json_file_name)
+    json_files = temp_json_files
 
 
-    print("json files:",json_files)
+    #print("json files:",json_files)
     reChinese = re.compile('[\x80-\xff]+')
     word_list = list()
     for attr in attr_list:
@@ -56,12 +56,9 @@ def extract_from_raw(data_dir, attr_list, first_time):
         elif attr == 'sections':
             sections_list = list()
 
-
-    
-
     for json_file_name in json_files:
         with open(json_file_name) as json_file:
-            print("open:",json_file_name)
+            #print("open:",json_file_name)
             data = json.load(json_file)
             items = data['_items']
             df = pd.DataFrame.from_dict(items)
@@ -82,11 +79,9 @@ def extract_from_raw(data_dir, attr_list, first_time):
                 style_list.extend(df['style'].tolist())
 
 
-
             for content in df['content']:
                 if pd.isnull(content):
-                    word_list.append(content)
-                    
+                    word_list.append(content)                    
                 else:
                     soup = BeautifulSoup(content['html'], 'html.parser')                                                
                     text = soup.get_text(strip=True)                      
@@ -105,14 +100,8 @@ def extract_from_raw(data_dir, attr_list, first_time):
     #df.to_msgpack('news_id_tfidf50_topic_category.msg')
     return df
 
-def ExtractTFIDF(source_dir="data/",msg_dir="intermediate-results/",mode="batch",first_time=True):
-    if not mode in ["batch","recent"]:
-        print "[Error] unknown mode!"
-        exit()
-
+def ExtractTFIDF(source_dir="data/",msg_dir="intermediate-results/",page_limit=2000):
     msg_name="news-id-tfidf50-topic-category.msg"
-    if mode=="recent":
-        msg_name="recent-"+msg_name
 
     if os.path.isdir(source_dir)==False:
         print "The source folder: '"+source_dir+"' does not exist. You may want to run get_raw_data.py first."    
@@ -123,19 +112,26 @@ def ExtractTFIDF(source_dir="data/",msg_dir="intermediate-results/",mode="batch"
         os.makedirs(msg_dir)
         print "Done!"
     
-
     my_attr = ['title', 'id', 'category','slug','sections','heroImage','style']
-    print source_dir
-    new_df = extract_from_raw(source_dir+'*', my_attr,first_time)
+    print("msg file:"+str(source_dir+msg_name))
+    t = time.time()
+    print("Making DataFrame...")
+    new_df = extract_from_raw(source_dir+'*', my_attr,page_limit)
+    print(time.time()-t)
+
     jieba.load_userdict('dict/moe.dict')
     jieba.analyse.set_stop_words('dict/stopping_words.dict')
-    tfidf_20 = partial(jieba.analyse.extract_tags, topK=20, withWeight=True)
+    tfidf_20 = partial(jieba.analyse.extract_tags, topK=10, withWeight=True)
+
+    print("Derive TFIDF...")
+    t = time.time()
     new_df['tags_text'] = new_df['text'].apply(tfidf_20)
-    #print(new_df.head())
+    print(time.time()-t)
     print("number of rows:",len(new_df))
+    print("number of unique id:",len(new_df['id'].unique()))
     print new_df.head()
     new_df.to_msgpack(msg_dir+msg_name)
+    print("output file: "+msg_dir+msg_name)
 
 if __name__=="__main__":
-   ExtractTFIDF()
-   # extract_features(source_dir="recent/",mode="recent")
+   ExtractTFIDF(page_limit=3000)
