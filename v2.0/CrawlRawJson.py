@@ -5,7 +5,7 @@ import time
 import os
 import datetime
 import glob
-
+import multiprocessing.pool
 
 hdr = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -34,30 +34,36 @@ def CrawlRawJson(dest_dir='data/'):
 
     if os.path.isdir(dest_dir)==False:
         os.makedirs(dest_dir)
-    else:
-        filenames = glob.glob(dest_dir+"news-page-*")
-        for x in filenames:
-            current_index = int(x.split('news-page-')[1])
-            if last_index < current_index:
-                last_index = current_index
 
     url = 'https://api.mirrormedia.mg/posts?where={"style":{"$nin":["campaign"]},"isAdvertised":false,"isAdult":false,"state":{"$nin":["invisible"]},"categories":{"$nin":["57fca2f5c9b7a70e004e6df9","57f37a92a89ee20d00cc4a83"]}}&sort=-publishedDate'
     page_num = get_meta_data(url)
 
     print("*** Start crawling news pages ***")
-    for i in range(last_index - 1, page_num + 1):
-        print("*** Start crawling news pages", i, " ***")
-        target_url = url + '&max_results&page=' + str(i)
+
+    jobinfo = {"time": time.time(), "count": 0}
+
+    def crawling_job(i):
+    #for i in range(page_num):
+        target_url = url + '&page=' + str(i)
+        #print("getting page #:"+str(i))
         try:
             req = urllib2.Request(target_url, headers=hdr)
             page = urllib2.urlopen(req)
         except urllib2.HTTPError, e:
             print e.fp.read()
+            exit()
         data = page.read()
         g = open(dest_dir+'news-page-'+str(i),'w')
         g.write(data)
-    print "Created "+str(i)+" files (each of them contains 50 news except the last one.)"
-    g.close()
+        g.close()
+        jobinfo["count"] += 1
+        if jobinfo["count"]%50==0:
+            print("Processed:"+str(jobinfo["count"])+", time passed:"+str(time.time()-jobinfo["time"])+"(s)")
+            jobinfo["time"] = time.time()
+
+    pool = multiprocessing.pool.ThreadPool()
+    pool.map(crawling_job, range(page_num))
+    print "Total: " + str(page_num) + " pages. The related news are in: "+dest_dir
 
 if __name__=="__main__":
     CrawlRawJson()
