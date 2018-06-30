@@ -25,20 +25,20 @@ def get_meta_data(url):
     data = page.read()
     jsondata = json.loads(data)
     total = jsondata['_meta']['total']
-    page_num = total/50+1
+    max_results = jsondata['_meta']['max_results']
+    page_num = total/max_results+1
     return page_num
 
 # dest_dir: the folder to place the file; params: the params for url
-def CrawlRawJson(dest_dir='data/'):    
-    last_index = 1
-
+def CrawlRawJson(dest_dir='data/',page_limit=float('inf')):    
     if os.path.isdir(dest_dir)==False:
         os.makedirs(dest_dir)
 
     url = 'https://api.mirrormedia.mg/posts?where={"style":{"$nin":["campaign"]},"isAdvertised":false,"isAdult":false,"state":{"$nin":["invisible"]},"categories":{"$nin":["57fca2f5c9b7a70e004e6df9","57f37a92a89ee20d00cc4a83"]}}&sort=-publishedDate'
-    page_num = get_meta_data(url)
+    page_num = min(get_meta_data(url),page_limit)
 
     print("*** Start crawling news pages ***")
+    print("*. Target: "+str(page_num)+" pages")
 
     jobinfo = {"time": time.time(), "count": 0}
 
@@ -62,7 +62,7 @@ def CrawlRawJson(dest_dir='data/'):
             jobinfo["time"] = time.time()
 
     pool = multiprocessing.pool.ThreadPool()
-    pool.map(crawling_job, range(page_num))
+    pool.map(crawling_job, range(1,page_num))
     print "Total: " + str(page_num) + " pages. The related news are in: "+dest_dir
 
 if __name__=="__main__":
