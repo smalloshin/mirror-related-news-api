@@ -129,7 +129,6 @@ def ExtractTFIDF(source_dir="data/",msg_dir="intermediate-results/",page_limit=2
     print(time.time()-t)
     print("number of rows:",len(new_df))
     print("number of unique id:",len(new_df['id'].unique()))
-    print new_df.head()
     new_df.to_msgpack(msg_dir+msg_name)
     print("output file: "+msg_dir+msg_name)
 

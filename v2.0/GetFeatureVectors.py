@@ -28,36 +28,36 @@ import cPickle as Pickle
 import multiprocessing.pool
 
 # get the feature vectors from the whole data
-def GetFeatureVectors(source_dir = 'intermediate-results/', pkl_dir='intermediate-results/', mode = "batch"):
-    if mode!="batch" and mode!="recent":
+def GetFeatureVectors(source_dir = 'intermediate-results/', pkl_dir='intermediate-results/', mode = "batch", pubsub_hson={}):
+    if mode!="batch" and mode!="pubsub":
         print "Mode is wrong!"
         exit()
 
     msg_filename="news-id-tfidf50-topic-category.msg"
     
-    if mode=="recent":
-        msg_filename='recent-'+msg_filename
-    
+   
+    print("*. Mode:"+mode)
+
     if not os.path.exists(source_dir+msg_filename):
         print "[Error] No features available! Execute get_features.py first!"
         print "[Fallback] Get features from fallback.msg!"
         df = pd.read_msgpack('fallback/fallback.msg')
     else:
         df = pd.read_msgpack(source_dir+msg_filename)
-
-    print "msg_filename: "+msg_filename
+        print "msg_filename: "+source_dir+msg_filename
     fenci_str=[]
-    print "number of rows:",len(df)
     
-    for x in df['tags_text']:
-        keys = ""
-        for i in range(len(x)):
-            keys = keys + str(x[i][0])
-            if i!=len(x)-1:
-                keys = keys + " "
-        fenci_str.append(keys)
-    #fenci_str=df['fenci_str'].tolist() 
-    id_list = df['id'].tolist()
+    if mode=='batch': 
+        print "number of rows:",len(df)
+        for x in df['tags_text']:
+            keys = ""
+            for i in range(len(x)):
+                keys = keys + str(x[i][0])
+                if i!=len(x)-1:
+                    keys = keys + " "
+            fenci_str.append(keys)
+        #fenci_str=df['fenci_str'].tolist() 
+        id_list = df['id'].tolist()
 
     #standard way to use TFIDF in scikit-learn
     print("Making Document Vectors...")
@@ -72,15 +72,13 @@ def GetFeatureVectors(source_dir = 'intermediate-results/', pkl_dir='intermediat
         # load countvectorizer
         if os.path.exists(pkl_dir+"cv.pkl"):
             f_pkl = open(pkl_dir+"cv.pkl","r")
-        else:
-            f_pkl = open("fallback/fallback-cv.pkl","r")
         cv = Pickle.load(f_pkl)    
         term_doc = cv.transform(fenci_str)    
 
     tfidf = transformer.fit_transform(term_doc)
     fv = tfidf.toarray()
-    print len(fv[0])
- 
+    print("Feature dimension:"+str(len(fv)))
+
     # save id_list and countvectorizer 
     if mode=="batch":
         f_pkl = open(pkl_dir+"cv.pkl",'w') 
