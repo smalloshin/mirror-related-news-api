@@ -33,9 +33,11 @@ def GetFeatureVectors(source_dir = 'intermediate-results/', pkl_dir='intermediat
         print "Mode is wrong!"
         exit()
 
-    msg_filename="news-id-tfidf50-topic-category.msg"
-    
    
+    msg_filename="news-id-tfidf50-topic-category.msg"
+    if mode=='pubsub':
+        msg_filename='pubsub-'+msg_filename
+
     print("*. Mode:"+mode)
 
     if not os.path.exists(source_dir+msg_filename):
@@ -47,16 +49,14 @@ def GetFeatureVectors(source_dir = 'intermediate-results/', pkl_dir='intermediat
         print "msg_filename: "+source_dir+msg_filename
     fenci_str=[]
     
-    if mode=='batch': 
-        print "number of rows:",len(df)
-        for x in df['tags_text']:
-            keys = ""
-            for i in range(len(x)):
-                keys = keys + str(x[i][0])
-                if i!=len(x)-1:
-                    keys = keys + " "
-            fenci_str.append(keys)
-        #fenci_str=df['fenci_str'].tolist() 
+    print "number of rows:",len(df)
+    for x in df['tags_text']:
+        keys = ""
+        for i in range(len(x)):
+            keys = keys + str(x[i][0])
+            if i!=len(x)-1:
+                keys = keys + " "
+        fenci_str.append(keys)
         id_list = df['id'].tolist()
 
     #standard way to use TFIDF in scikit-learn
