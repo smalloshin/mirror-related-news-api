@@ -32,7 +32,14 @@ def get_meta_data(url):
 # dest_dir: the folder to place the file; params: the params for url
 def CrawlRawJson(dest_dir='data/',page_limit=float('inf')):    
     if os.path.isdir(dest_dir)==False:
+        print("Build directory "+dest_dir)
         os.makedirs(dest_dir)
+    else:
+        print("Clean directory "+dest_dir)
+        import glob
+        filelist=glob.glob(os.path.join(dest_dir, "*"))
+        for f in filelist:
+            os.remove(f)
 
     url = 'https://api.mirrormedia.mg/posts?where={"style":{"$nin":["campaign"]},"isAdvertised":false,"isAdult":false,"state":{"$nin":["invisible"]},"categories":{"$nin":["57fca2f5c9b7a70e004e6df9","57f37a92a89ee20d00cc4a83"]}}&sort=-publishedDate'
     page_num = min(get_meta_data(url),page_limit)
