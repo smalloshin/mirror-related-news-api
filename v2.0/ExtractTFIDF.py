@@ -19,25 +19,7 @@ from sklearn.feature_extraction import DictVectorizer
 import os
 import time
 
-def extract_from_raw(data_dir, attr_list, page_limit):
-    json_dir = glob(data_dir)
-    json_files = glob(data_dir+"news-page-*")
-
-    max_page = 1
-    for json_file_name in json_files:
-        current_page = int(json_file_name.split('news-page-')[1])
-        if max_page<current_page:
-            max_page = current_page
-
-    temp_json_files = []
-    for json_file_name in json_files:
-        index = int(json_file_name.split('news-page-')[1])
-        if index <= page_limit:
-            temp_json_files.append(json_file_name)
-    json_files = temp_json_files
-
-
-    #print("json files:",json_files)
+def extract_from_raw(data_dir, attr_list, page_limit,mode='batch'):
     reChinese = re.compile('[\x80-\xff]+')
     word_list = list()
     for attr in attr_list:
@@ -55,6 +37,20 @@ def extract_from_raw(data_dir, attr_list, page_limit):
             style_list = list()
         elif attr == 'sections':
             sections_list = list()
+
+    json_dir = glob(data_dir)
+    if mode=='batch':
+        json_files=glob(data_dir+"news-page-*")
+    elid mode=="pubsub":
+        json_files=glob(data_dir+"*")
+
+    temp_json_files = []
+    for json_file_name in json_files:
+        index = int(json_file_name.split('news=page-')[1])
+        if index<=page_limit:
+            temp_json_files.append(json_file_name)
+    json_files=temp_json_files
+
 
     for json_file_name in json_files:
         with open(json_file_name) as json_file:
@@ -97,20 +93,23 @@ def extract_from_raw(data_dir, attr_list, page_limit):
     df = pd.DataFrame.from_dict(record_dict)
     nullIndex = pd.isnull(df).any(1).nonzero()[0]
     df.drop(nullIndex, inplace=True)
-    #df.to_msgpack('news_id_tfidf50_topic_category.msg')
     return df
 
-def ExtractTFIDF(source_dir="data/",msg_dir="intermediate-results/",page_limit=2000):
+def ExtractTFIDF(source_dir="data/",msg_dir="intermediate-results/",mode='batch',page_limit=2000):
     msg_name="news-id-tfidf50-topic-category.msg"
 
-    if os.path.isdir(source_dir)==False:
-        print "The source folder: '"+source_dir+"' does not exist. You may want to run get_raw_data.py first."    
-        exit()
-    if os.path.isdir(msg_dir)==False:
-        print "The folder to store msg file: '"+msg_dir+"' does not exist."
-        print "Creating...."
-        os.makedirs(msg_dir)
-        print "Done!"
+
+    if mode=='batch':
+        if os.path.isdir(source_dir)==False:
+            print "The source folder: '"+source_dir+"' does not exist. You may want to run get_raw_data.py first."    
+            exit()
+        if os.path.isdir(msg_dir)==False:
+            print "The folder to store msg file: '"+msg_dir+"' does not exist."
+            print "Creating...."
+            os.makedirs(msg_dir)
+            print "Done!"
+    elif mode=='pubsub':
+        msg_name = 'pubsub-'+msg_name
     
     my_attr = ['title', 'id', 'category','slug','sections','heroImage','style']
     print("msg file:"+str(source_dir+msg_name))
