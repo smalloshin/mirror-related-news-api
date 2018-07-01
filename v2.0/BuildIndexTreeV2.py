@@ -48,7 +48,7 @@ def BuildIndexTree(fv,id_list,k=20,cp=None,mode="batch",pkl_dir = 'intermediate-
         t=time.time()
         # if first time: load batch model!
         if cp==None:
-            cp = Pickle.load(open(dest_dir+'pysparnn-index.pkl','r'))
+            cp = Pickle.load(open(pkl_dir+'pysparnn-index.pkl','r'))
         print(time.time()-t)
         # add vectors into the index
         for i in range(len(fv)):
@@ -77,6 +77,7 @@ def BuildIndexTree(fv,id_list,k=20,cp=None,mode="batch",pkl_dir = 'intermediate-
 
     print "The related news are in: "+dest_dir+output_filename
     g.close()
+    return cp
 
 if __name__=="__main__":
     from GetFeatureVectors import *
