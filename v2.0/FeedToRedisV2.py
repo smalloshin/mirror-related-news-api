@@ -45,7 +45,7 @@ def FeedToRedis(r=r,source_dir = "intermediate-results/", input_prefix="related-
         print "[Error] the mode is not correct!"
         exit()
 
-   
+    t=time.time() 
     today_stamp=datetime.date.today().strftime("%Y%d%m")
     result_filename = input_prefix+"-"+today_stamp+".result"
     print(result_filename)
@@ -57,14 +57,14 @@ def FeedToRedis(r=r,source_dir = "intermediate-results/", input_prefix="related-
     if os.path.exists(source_dir+result_filename)==True:
         f = open(source_dir+result_filename,'r')
     else:
-        print("[Warning] Cannot find the latest list of related news. Use the fallback list now. Please run daily_batch.sh to get the latest related news")
-        f = open('fallback/fallback.result','r')
-    
+        print("[Error] Cannot find the latest list of related news. Please run daily_operation.py to get the latest related news")
+        exit()
+
     if os.path.exists(source_dir+msg_filename)==True:
         df = pd.read_msgpack(source_dir+msg_filename)
     else:
-        print("[Warning] Cannot find the latest metadata of related news. Use the fallback metadata now. Please run daily_batch.sh to get the latest metadata")
-        df = pd.read_msgpack('fallback/fallback.msg')
+        print("[Error] Cannot find the latest metadata of related news. Please run daily_batch.sh to get the latest metadata")
+        exit()
 
     print("Loading the KNN list...")
    
@@ -97,7 +97,8 @@ def FeedToRedis(r=r,source_dir = "intermediate-results/", input_prefix="related-
     print "Total: "+str(len(news_dict))
     print "Feed all to Redis..."
     r.mset(news_dict)
-    print "Done!" 
+    print "Done!"
+    print(time.time()-t)
 
 if __name__=="__main__":
     import time
