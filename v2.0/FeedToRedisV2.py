@@ -46,7 +46,7 @@ def FeedToRedis(r=r,source_dir = "intermediate-results/", input_prefix="related-
         exit()
 
     t=time.time() 
-    today_stamp=datetime.date.today().strftime("%Y%d%m")
+    today_stamp=datetime.date.today().strftime("%Y%m%d")
     result_filename = input_prefix+"-"+today_stamp+".result"
     print(result_filename)
     msg_filename = "news-id-tfidf50-topic-category.msg"
