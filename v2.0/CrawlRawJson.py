@@ -70,6 +70,8 @@ def CrawlRawJson(dest_dir='data/',page_limit=float('inf')):
 
     pool = multiprocessing.pool.ThreadPool()
     pool.map(crawling_job, range(1,page_num))
+    pool.close()
+    pool.join()
     print "Total: " + str(page_num) + " pages. The related news are in: "+dest_dir
 
 if __name__=="__main__":
