@@ -41,12 +41,12 @@ def extract_from_raw(data_dir, attr_list, page_limit,mode='batch'):
     json_dir = glob(data_dir)
     if mode=='batch':
         json_files=glob(data_dir+"news-page-*")
-    elid mode=="pubsub":
+    elif mode=="pubsub":
         json_files=glob(data_dir+"*")
 
     temp_json_files = []
     for json_file_name in json_files:
-        index = int(json_file_name.split('news=page-')[1])
+        index = int(json_file_name.split('news-page-')[1])
         if index<=page_limit:
             temp_json_files.append(json_file_name)
     json_files=temp_json_files
