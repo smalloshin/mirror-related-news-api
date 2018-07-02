@@ -1,66 +1,72 @@
 import os
-from google.cloud import pubsub
+from google.cloud import pubsub_v1
 import json
 import ConfigParser
-import jieba
-from util.ContentParser import *
-import cPickle as Pickle
-from sklearn import feature_extraction
-from sklearn.feature_extraction.text import TfidfTransformer
-from BuildIndexTreeV2 import *
+import time
+import datetime
 
-# read the config for redis connection
-config = ConfigParser.ConfigParser()
-config.read('related-news-engine.conf')
-credential = config.get('PUBSUB','GOOGLE_APPLICATION_CREDENTIALS')
-project_id = config.get('PUBSUB','PROJECT_ID')
-topic = config.get('PUBSUB','TOPIC')
-sub = 'sub_test13'
+stream_jsons=[]
 
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential
+def GenerateStreamJson(stream_jsons):
+    
+    return
 
-subscriber = pubsub.SubscriberClient()
-topic_name = 'projects/{project_id}/topics/{topic}'.format(project_id=project_id,topic=topic)
-subscription_name = 'projects/{project_id}/subscriptions/{sub}'.format(project_id=project_id,sub=sub)
+def GetPubSubStreaming(dest_dir="streaming/"):
+    # read the config for redis connection
+    config = ConfigParser.ConfigParser()
+    config.read('related-news-engine.conf')
+    credential = config.get('PUBSUB','GOOGLE_APPLICATION_CREDENTIALS')
+    project_id = config.get('PUBSUB','PROJECT_ID')
+    topic_id = config.get('PUBSUB','TOPIC_ID')
+    sub_id = 'sub_test123'
 
-# preload the models
-# 1. load jieba
-jieba.load_userdict('dict/moe.dict')
-jieba.analyse.set_stop_words('dict/stopping_words.dict')
-# 2. compute tfidf feature
-cv = Pickle.load(open(pkl_dir+"cv.pkl","r"))
-# 3. index 
-cp = Pickle.load(open(dest_dir+'pysparnn-index.pkl','r'))
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential
+
+    project_path = 'projects/'+project_id
+    topic_path = project_path+'/topics/'+topic_id
+    subscription_path = project_path+'/subscriptions/'+sub_id
+    full_subscription_path = topic_path+'/subscriptions/'+sub_id
+   
+
+    print(subscription_path)
+    publisher = pubsub_v1.PublisherClient()
+    subscriber = pubsub_v1.SubscriberClient()    
+    
+    existing_subscriber=False
+    for subinfo in subscriber.list_subscriptions(project_path):
+        if subscription_path==subinfo.name:
+            existing_subscriber=True
+            break
+
+    if existing_subscriber==False:
+        subscriber.create_subscription(subscription_path,topic_path)
+    
+    # define the callback function
+    def callback(message):
+        json_dict = json.loads(message.data)
+        if '_id' in json_dict:
+            print(json_dict['_id'])    
+            stream_jsons.append(json_dict)
+        message.ack()
+    # subscriber
+    subscriber.subscribe(subscription_path,callback)
+
+    # what will we do when describing
+    
+    while True:
+        time.sleep(10)
+        if stream_jsons!=[]:
+            
+            time_stamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+            output_filename = "streaming-"+time_stamp
+            print(output_filename)
+            print(len(stream_jsons))
+            f = open(dest_dir+output_filename,'w')
+            output_dict = dict()
+            output_dict['_items']=dict()
+
+            
 
 
-try:
-    subscriber.create_subscription(subscription_name, topic_name)
-except Exception as e:
-    if "409" in str(e):
-        print("[Warning] The subscriber exists!")
-        pass
-    else:
-        print(e)
-        exit()
-
-
-def callback(message):
-    if message.attributes:
-        if 'operation' in message.arrtibute:
-            value = message.arrtibutes.get('operation')
-            if value=="delete":
-                facet = json.loads(message.data)
-                if '_id' in facet:
-                    print(message.data)
-                    # start to do something
-    message.ack()
-
-
-subscriber.subscribe('projects/{project_id}/subscriptions/{sub}'.format(project_id=project_id,sub=sub),callback)
-
-while True:
-    import time
-    time.sleep(10)
-    print("I'm awake!")
-
-
+if __name__=="__main__":
+    GetPubSubStreaming()
