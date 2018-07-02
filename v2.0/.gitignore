@@ -1,8 +1,9 @@
 data/
 intermediate-results/
-recent/
+streaming-data/
 gcskeyfile.json
 *.swp
 *.pyc
 *.log
 *.swo
+*.conf
