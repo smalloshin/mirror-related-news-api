@@ -45,10 +45,13 @@ def FeedToRedis(r=r,source_dir = "intermediate-results/", input_prefix="related-
         print "[Error] the mode is not correct!"
         exit()
 
+    if TestConnection(r)==False:
+        exit()
+
     t=time.time() 
     today_stamp=datetime.date.today().strftime("%Y%m%d")
     result_filename = input_prefix+"-"+today_stamp+".result"
-    print(result_filename)
+    print("Loading:"+result_filename)
     msg_filename = "news-id-tfidf50-topic-category.msg"
     if mode == "recent":
         result_filename = "recent-"+result_filename
@@ -99,6 +102,16 @@ def FeedToRedis(r=r,source_dir = "intermediate-results/", input_prefix="related-
     r.mset(news_dict)
     print "Done!"
     print(time.time()-t)
+
+def TestConnection(r=r):
+    ok=False
+    try:
+        response = r.client_list()
+        print("Redis Connection OK!")
+        ok=True
+    except redis.ConnectionError:
+        print("Redis Connection Error!")
+    return ok
 
 if __name__=="__main__":
     import time
