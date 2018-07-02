@@ -1,8 +1,8 @@
 from CrawlRawJson import * 
 from ExtractTFIDF import *
 from GetFeatureVectors import *
-from BuildIndexTree import *
-from FeedToRedis import *
+from BuildIndexTreeV2 import *
+from FeedToRedisV2 import *
 import time
 import os
 
@@ -25,7 +25,7 @@ ExtractTFIDF()
 print("\n ****  Step 3: Generate Feature Vectors for articles ****")
 fv, id_list = GetFeatureVectors()
 print("\n **** Step 4: Build index tree for related news ****")
-BuildIndexTreeV2(fv,id_list)
+BuildIndexTree(fv,id_list)
 print("\n **** Step 5: Feed related news articles into Redis ****")
-FeedToRedisV2()
+FeedToRedis()
 print(" ######## Done! Spent: "+str(time.time()-t)+"(s) ########")

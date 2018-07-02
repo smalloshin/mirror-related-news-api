@@ -46,8 +46,11 @@ def extract_from_raw(data_dir, attr_list, page_limit,mode='batch'):
 
     temp_json_files = []
     for json_file_name in json_files:
-        index = int(json_file_name.split('news-page-')[1])
-        if index<=page_limit:
+        if mode=="batch":
+            index = int(json_file_name.split('news-page-')[1])
+            if index<=page_limit:
+                temp_json_files.append(json_file_name)
+        elif mode=="pubsub":
             temp_json_files.append(json_file_name)
     json_files=temp_json_files
 
@@ -95,7 +98,7 @@ def extract_from_raw(data_dir, attr_list, page_limit,mode='batch'):
     df.drop(nullIndex, inplace=True)
     return df
 
-def ExtractTFIDF(source_dir="data/",msg_dir="intermediate-results/",mode='batch',page_limit=2000):
+def ExtractTFIDF(source_dir="data/",msg_dir="intermediate-results/",mode='batch',page_limit=3000):
     msg_name="news-id-tfidf50-topic-category.msg"
 
 
@@ -110,12 +113,13 @@ def ExtractTFIDF(source_dir="data/",msg_dir="intermediate-results/",mode='batch'
             print "Done!"
     elif mode=='pubsub':
         msg_name = 'pubsub-'+msg_name
-    
+        source_dir = 'streaming-data/'
+
     my_attr = ['title', 'id', 'category','slug','sections','heroImage','style']
     print("msg file:"+str(source_dir+msg_name))
     t = time.time()
     print("Making DataFrame...")
-    new_df = extract_from_raw(source_dir+'*', my_attr,page_limit)
+    new_df = extract_from_raw(data_dir=source_dir+'*', attr_list=my_attr,page_limit=page_limit,mode=mode)
     print(time.time()-t)
 
     jieba.load_userdict('dict/moe.dict')
@@ -125,6 +129,7 @@ def ExtractTFIDF(source_dir="data/",msg_dir="intermediate-results/",mode='batch'
     print("Derive TFIDF...")
     t = time.time()
     new_df['tags_text'] = new_df['text'].apply(tfidf_20)
+    print(new_df.head())
     print(time.time()-t)
     print("number of rows:",len(new_df))
     print("number of unique id:",len(new_df['id'].unique()))

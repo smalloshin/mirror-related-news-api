@@ -24,7 +24,7 @@ fv: the feature vectors; id_list: the list of ids; cp: existing index (only in r
 pkl_dir: the path where the existing model is
 dest_dir: the path of the output model; output_prefix: the output file name prefix
 """
-def BuildIndexTree(fv,id_list,k=20,cp=None,mode="batch",pkl_dir = 'intermediate-results/', dest_dir='intermediate-results/', output_prefix="related-news-pysparnn"):
+def BuildIndexTree(fv,id_list,k=20,mode="batch",pkl_dir = 'intermediate-results/', dest_dir='intermediate-results/', output_prefix="related-news-pysparnn"):
     if not mode in ["batch","pubsub"]:
         print "[Error] Mode error!"
         exit()
@@ -33,6 +33,7 @@ def BuildIndexTree(fv,id_list,k=20,cp=None,mode="batch",pkl_dir = 'intermediate-
     n = len(fv)
     f = len(fv[0])
     print("n="+str(n)+", f="+str(f)+"\n")
+    cp = None
 
     if mode=='batch':
         print("Bullding index (by pysparnn) ...")
@@ -44,15 +45,17 @@ def BuildIndexTree(fv,id_list,k=20,cp=None,mode="batch",pkl_dir = 'intermediate-
         print("Store index into disk....")
         Pickle.dump(cp,open(dest_dir+'pysparnn-index.pkl','w'))
         print(time.time()-t)
-    elif mode=="poubsub":
+    elif mode=="pubsub":
         t=time.time()
         # if first time: load batch model!
-        if cp==None:
-            cp = Pickle.load(open(pkl_dir+'pysparnn-index.pkl','r'))
+        cp = Pickle.load(open(pkl_dir+'pysparnn-index.pkl','r'))
         print(time.time()-t)
         # add vectors into the index
         for i in range(len(fv)):
             cp.insert(fv[i],id_list[i])
+        t = time.time()
+        Pickle.dump(cp,open(dest_dir+"pysparnn-index.pkl","w"))
+        print("save:",time.time()-t)
 
     # create output file if not exists. otherwise, append the result.
     today_stamp=datetime.date.today().strftime("%Y%m%d")
@@ -62,6 +65,7 @@ def BuildIndexTree(fv,id_list,k=20,cp=None,mode="batch",pkl_dir = 'intermediate-
         g = open(dest_dir+output_filename,'w')
     elif mode=='pubsub':
         g = open(dest_dir+output_filename,'a+')
+        h = open(dest_dir+"pubsub-"+output_filename,"w")
         
    
     print("Generate related news list...")
@@ -73,11 +77,16 @@ def BuildIndexTree(fv,id_list,k=20,cp=None,mode="batch",pkl_dir = 'intermediate-
         news_id = x[0][1]
         related_news_json = json.dumps(x[1:-1])
         g.write(news_id+"\t"+related_news_json+"\n")
+        if mode=="pubsub":
+            h.write(news_id+"\t"+related_news_json+"\n")
     print(time.time()-t)
 
     print "The related news are in: "+dest_dir+output_filename
     g.close()
-    return cp
+
+    if mode=="pubsub":
+        print("The related news for streaming data are in:"+dest_dir+"pubsub-"+output_filename)
+        h.close()
 
 if __name__=="__main__":
     from GetFeatureVectors import *

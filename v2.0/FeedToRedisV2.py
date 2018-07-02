@@ -4,6 +4,7 @@ import pandas as pd
 import json
 import ConfigParser
 import datetime
+import time
 
 # read the config for redis connection
 config = ConfigParser.ConfigParser()
@@ -41,7 +42,7 @@ def get_facets(r_id,df):
     return r_dict
 
 def FeedToRedis(r=r,source_dir = "intermediate-results/", input_prefix="related-news-pysparnn",mode="batch"):
-    if not mode in ["batch","recent"]:
+    if not mode in ["batch","pubsub"]:
         print "[Error] the mode is not correct!"
         exit()
 
@@ -51,27 +52,38 @@ def FeedToRedis(r=r,source_dir = "intermediate-results/", input_prefix="related-
     t=time.time() 
     today_stamp=datetime.date.today().strftime("%Y%m%d")
     result_filename = input_prefix+"-"+today_stamp+".result"
-    print("Loading:"+result_filename)
     msg_filename = "news-id-tfidf50-topic-category.msg"
-    if mode == "recent":
-        result_filename = "recent-"+result_filename
-        msg_filename = "recent-"+msg_filename
+
+    print("*. mode:"+mode)
+
+    if os.path.exists(source_dir+msg_filename)==True:
+        df = pd.read_msgpack(source_dir+msg_filename)
+        print("loading:"+source_dir+msg_filename)
+    else:
+        print("[Error] Cannot find:"+source_dir+msg_filename)
+        exit()
+
+    # add prefix when pubsubv
+    if mode == "pubsub":
+        result_filename = "pubsub-"+result_filename
+        msg_filename = "pubsub-"+msg_filename
+        if os.path.exists(source_dir+msg_filename)==True:
+            pubsub_df = pd.read_msgpack(source_dir+msg_filename)
+            print("loading:"+source_dir+msg_filename)
+            print(len(pubsub_df),len(df))
+            df = df.append(pubsub_df,ignore_index=True)
+            print("merge dataframe in batch and pubsub modes")
+            print(len(df))
+        else:
+            print("[Error] Cannot find:"+source_dir+msg_filename)
+            exit()
 
     if os.path.exists(source_dir+result_filename)==True:
         f = open(source_dir+result_filename,'r')
     else:
-        print("[Error] Cannot find the latest list of related news. Please run daily_operation.py to get the latest related news")
+        print("[Error] Cannot find:"+source_dir+result_filename)
         exit()
 
-    if os.path.exists(source_dir+msg_filename)==True:
-        df = pd.read_msgpack(source_dir+msg_filename)
-    else:
-        print("[Error] Cannot find the latest metadata of related news. Please run daily_batch.sh to get the latest metadata")
-        exit()
-
-    print("Loading the KNN list...")
-   
-   
     c = 0
     news_dict = dict()
     for line in f:

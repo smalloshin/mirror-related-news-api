@@ -41,9 +41,8 @@ def GetFeatureVectors(source_dir = 'intermediate-results/', pkl_dir='intermediat
     print("*. Mode:"+mode)
 
     if not os.path.exists(source_dir+msg_filename):
-        print "[Error] No features available! Execute get_features.py first!"
-        print "[Fallback] Get features from fallback.msg!"
-        df = pd.read_msgpack('fallback/fallback.msg')
+        print "[Error] No features available! Execute GetFeatureVectorss.py first!"
+        exit()
     else:
         df = pd.read_msgpack(source_dir+msg_filename)
         print "msg_filename: "+source_dir+msg_filename
