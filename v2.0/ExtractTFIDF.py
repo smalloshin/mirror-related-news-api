@@ -82,9 +82,12 @@ def extract_from_raw(data_dir, attr_list, page_limit,mode='batch'):
                 if pd.isnull(content):
                     word_list.append(content)                    
                 else:
-                    soup = BeautifulSoup(content['html'], 'html.parser')                                                
+                    if mode=='batch':
+                        soup = BeautifulSoup(content['html'], 'html.parser')
+                    elif mode=='pubsub':
+                        soup = BeautifulSoup(content,'html.parser')
+
                     text = soup.get_text(strip=True)                      
-                    
                     text = text.strip(' \t\n\r')
                     text = ' '.join(text.split())
                     text = text.encode('utf-8')
