@@ -38,7 +38,7 @@ $ python GetPubSubStreaming.py
 
 ## 程式邏輯
 此程式主要分成兩個部分。一個部分是爬蟲的部分，另外一個部分是相關新聞的核心。爬蟲中分成批次和即時兩個檔案，而核心部分可以設定mode='batch'來執行批次分析以及mode='pubsub'來進行即時的分析。最後結果將會寫到redis中。
-![Related News Engine V2](https://imgur.com/qwuCiSP)
+<img src="https://i.imgur.com/qwuCiSP.png"/> 
 
 ## 檔案結構與程式功用
 ### 資料夾
