@@ -23,14 +23,9 @@ def GenerateStreamingJson(stream_jsons,dest_dir="streaming-data/"):
     output_filename = "streaming-"+time_stamp                  
     f = open(dest_dir+output_filename,'w')
     output_dict = dict()
-    output_dict['_items']=dict()
+    output_dict['_items']=stream_jsons
 
-    for i in range(len(stream_jsons)):
-        key = str(i)
-        output_dict['_items'][key]=dict()
-        output_dict['_items'][key]=stream_jsons[i]
-
-    print("total:"+str(len(output_dict)))
+    print("total:"+str(len(stream_jsons)))
     output_json = json.dumps(output_dict)
     f.write(output_json)
     print("output file:"+dest_dir+output_filename)
