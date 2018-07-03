@@ -6,4 +6,3 @@ gcskeyfile.json
 *.pyc
 *.log
 *.swo
-*.conf

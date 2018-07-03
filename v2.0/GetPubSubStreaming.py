@@ -16,7 +16,7 @@ def GenerateStreamingJson(stream_jsons,dest_dir="streaming-data/"):
     for i in range(len(stream_jsons)):
         key = str(i)
         output_dict[key]=dict()
-        output_dict[key]=stream_json[i]
+        output_dict[key]=stream_jsons[i]
 
     print("total:"+str(len(output_dict)))
     output_json = json.dumps(output_dict)
@@ -32,7 +32,7 @@ def GetPubSubStreaming(dest_dir="streaming-data/"):
     credential = config.get('PUBSUB','GOOGLE_APPLICATION_CREDENTIALS')
     project_id = config.get('PUBSUB','PROJECT_ID')
     topic_id = config.get('PUBSUB','TOPIC_ID')
-    sub_id = 'sub_test9527'
+    sub_id = config.get('PUBSUB','SUB_ID')
 
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential
 
