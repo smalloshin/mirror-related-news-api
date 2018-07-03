@@ -6,14 +6,14 @@ import time
 import datetime
 from ProcessStreamingData import *
 
-def GenerateStreamingJson(stream_jsons,dest_dir="streaming/"):
+def GenerateStreamingJson(stream_jsons,dest_dir="streaming-data/"):
     time_stamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     output_filename = "streaming-"+time_stamp                  
     f = open(dest_dir+output_filename,'w')
     output_dict = dict()
     output_dict['_items']=dict()
 
-    for i in len(stream_jsons):
+    for i in range(len(stream_jsons)):
         key = str(i)
         output_dict[key]=dict()
         output_dict[key]=stream_json[i]
@@ -24,7 +24,7 @@ def GenerateStreamingJson(stream_jsons,dest_dir="streaming/"):
     print("output file:"+dest_dir+output_filename)
     f.close()
 
-def GetPubSubStreaming(dest_dir="streaming/"):
+def GetPubSubStreaming(dest_dir="streaming-data/"):
     print("[START] Getting Pubsub Streaming...")
     # read the config for redis connection
     config = ConfigParser.ConfigParser()
@@ -69,14 +69,14 @@ def GetPubSubStreaming(dest_dir="streaming/"):
     subscriber.subscribe(subscription_path,callback)
 
     # what will we do when describing
-    
+
     while True:
         time.sleep(10)
         if slice_stream_jsons!=[]:
-            print("Ready to output:"+str(len(stream_jsons)))
+            print("Ready to output:"+str(len(slice_stream_jsons)))
+            today_stream_jsons += slice_stream_jsons
             GenerateStreamingJson(today_stream_jsons,dest_dir)
             ProcessStreamingData()
-            today_stream_jsons += slice_stream_jsons
             slice_stream_jsons=[]
             print("Clean the queue!")
         print("I'm sleep!")

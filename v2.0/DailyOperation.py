@@ -11,13 +11,16 @@ t = time.time()
 print("######## Related News Engine V2 ########")
 print("Daily Operation Starts...")
 print("**** Step 0: Preparing directories ****")
-if os.path.isdir('streaming-data/')==False:
-    os.makedirs('streaming-data/')
-else:
-    import glob
-    filelist=glob.glob(os.path.join('streaming-data/', "*"))
-    for f in filelist:
-        os.remove(f)
+dirs = ['streaming-data/','intermediate-results','data/']
+
+for x in dirs:
+    if os.path.isdir(x)==False:
+        os.makedirs(x)
+    else:
+        import glob
+        filelist=glob.glob(os.path.join(x, "*"))
+        for f in filelist:
+            os.remove(f)
 print("**** Step 1: Crawling json files for all news articles ****")
 CrawlRawJson()
 print("\n **** Step 2: Extract TF-IDF from articles ****")
