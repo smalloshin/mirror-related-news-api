@@ -4,7 +4,19 @@ import json
 import ConfigParser
 import time
 import datetime
-from ProcessStreamingData import *
+# for pubsub mode
+from ExtractTFIDF import *
+from GetFeatureVectors import *
+from BuildIndexTreeV2 import *
+from FeedToRedisV2 import * 
+
+
+def ProcessStreamingData():
+    ExtractTFIDF(mode='pubsub')
+    fv,id_list = GetFeatureVectors(mode="pubsub")
+    BuildIndexTree(fv,id_list,mode="pubsub")
+    FeedToRedis(mode="pubsub")
+    print("DONE!")
 
 def GenerateStreamingJson(stream_jsons,dest_dir="streaming-data/"):
     time_stamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
@@ -15,8 +27,8 @@ def GenerateStreamingJson(stream_jsons,dest_dir="streaming-data/"):
 
     for i in range(len(stream_jsons)):
         key = str(i)
-        output_dict[key]=dict()
-        output_dict[key]=stream_jsons[i]
+        output_dict['_items'][key]=dict()
+        output_dict['_items'][key]=stream_jsons[i]
 
     print("total:"+str(len(output_dict)))
     output_json = json.dumps(output_dict)
@@ -55,7 +67,6 @@ def GetPubSubStreaming(dest_dir="streaming-data/"):
     if existing_subscriber==False:
         subscriber.create_subscription(subscription_path,topic_path)
    
-    today_stream_jsons=[]
     slice_stream_jsons=[]
 
     # define the callback function
@@ -74,8 +85,7 @@ def GetPubSubStreaming(dest_dir="streaming-data/"):
         time.sleep(10)
         if slice_stream_jsons!=[]:
             print("Ready to output:"+str(len(slice_stream_jsons)))
-            today_stream_jsons += slice_stream_jsons
-            GenerateStreamingJson(today_stream_jsons,dest_dir)
+            GenerateStreamingJson(slice_stream_jsons,dest_dir)
             ProcessStreamingData()
             slice_stream_jsons=[]
             print("Clean the queue!")
