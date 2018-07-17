@@ -9,7 +9,9 @@ from ExtractTFIDF import *
 from GetFeatureVectors import *
 from BuildIndexTreeV2 import *
 from FeedToRedisV2 import * 
+import logging
 
+logging.basicConfig(filename='pubsub.log',level=logging.DEBUG)
 
 def ProcessStreamingData():
     ExtractTFIDF(mode='pubsub')
@@ -68,7 +70,11 @@ def GetPubSubStreaming(dest_dir="streaming-data/"):
     def callback(message):
         json_dict = json.loads(message.data)
         if '_id' in json_dict:
-            print(json_dict['_id'])    
+            #print(json_dict['_id']) 
+            # this is for defug, will remove later"
+            import datetime
+            logging.info("pubsub,"+str(datetime.now())+","+str(json_dict['_id']))
+            ########################################
             slice_stream_jsons.append(json_dict)
         message.ack()
     # subscriber
@@ -79,6 +85,12 @@ def GetPubSubStreaming(dest_dir="streaming-data/"):
     while True:
         time.sleep(10)
         if slice_stream_jsons!=[]:
+            ### for debug
+            import datetime
+            for x in slice_stream_jsons:
+                logging.info("while,"+str(datetime.now())+","+str(x['_id']))
+
+            ###############
             print("Ready to output:"+str(len(slice_stream_jsons)))
             GenerateStreamingJson(slice_stream_jsons,dest_dir)
             ProcessStreamingData()
