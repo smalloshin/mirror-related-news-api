@@ -69,9 +69,8 @@ def GetFeatureVectors(source_dir = 'intermediate-results/', pkl_dir='intermediat
         term_doc = cv.fit_transform(fenci_str)
     else:
         # load countvectorizer
-        if os.path.exists(pkl_dir+"cv.pkl"):
-            f_pkl = open(pkl_dir+"cv.pkl","r")
-        cv = Pickle.load(f_pkl)    
+        with open(pkl_dir+"cv.pkl","r") as f_pkl:
+            cv = Pickle.load(f_pkl)    
         term_doc = cv.transform(fenci_str)    
 
     tfidf = transformer.fit_transform(term_doc)
