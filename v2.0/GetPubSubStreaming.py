@@ -77,13 +77,15 @@ def GetPubSubStreaming(dest_dir="streaming-data/"):
 
     while True:
         time.sleep(10)
-        if slice_stream_jsons!=[]:
-            print("Ready to output:"+str(len(slice_stream_jsons)))
-            GenerateStreamingJson(slice_stream_jsons,dest_dir)
+        while slice_stream_jsons!=[]:
+            target_jsons = slice_stream_jsons
+            print("Ready to output:"+str(len(target_jsons)))
+            GenerateStreamingJson(target_jsons,dest_dir)
             ProcessStreamingData()
-            slice_stream_jsons=[]
-            print("Clean the queue!")
-        print("I'm sleep!")
+            slice_stream_jsons=list(set(slice_stream_jsons)-set(target_jsons))
+            
+            time_stamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+            print("["+time_stamp+"] finished:"+str(len(target_jsons))+"; new-comers:"+str(len(slice_stream_jsons)))
 
 if __name__=="__main__":
     GetPubSubStreaming()
