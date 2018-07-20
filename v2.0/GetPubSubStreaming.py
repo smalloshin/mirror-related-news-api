@@ -9,6 +9,7 @@ from ExtractTFIDF import *
 from GetFeatureVectors import *
 from BuildIndexTreeV2 import *
 from FeedToRedisV2 import * 
+from multiprocessing import Queue
 
 def ProcessStreamingData():
     ExtractTFIDF(mode='pubsub')
@@ -61,31 +62,42 @@ def GetPubSubStreaming(dest_dir="streaming-data/"):
     if existing_subscriber==False:
         subscriber.create_subscription(subscription_path,topic_path)
    
-    slice_stream_jsons=[]
+    q = Queue()
 
     # define the callback function
     def callback(message):
         json_dict = json.loads(message.data)
         if '_id' in json_dict:
             print(json_dict['_id']) 
-            slice_stream_jsons.append(json_dict)
+            q.put(json_dict)
         message.ack()
     # subscriber
     subscriber.subscribe(subscription_path,callback)
 
     # what will we do when describing
-
+    sleep_count = 0
     while True:
         time.sleep(10)
-        while slice_stream_jsons!=[]:
-            target_jsons = slice_stream_jsons
-            print("Ready to output:"+str(len(target_jsons)))
+        while q.empty()!=True:
+            print("Ready to output:"+str(len(q.qsize())))
+            
+            # get all jsons in queue
+            target_jsons = []        
+            while q.empty()!=True:
+                target_jsons.append(q.get())
+
+            # process jsons in the target_jsons
             GenerateStreamingJson(target_jsons,dest_dir)
             ProcessStreamingData()
-            slice_stream_jsons=list(set(slice_stream_jsons)-set(target_jsons))
-            
+
+            #logging
             time_stamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-            print("["+time_stamp+"] finished:"+str(len(target_jsons))+"; new-comers:"+str(len(slice_stream_jsons)))
+            print("["+time_stamp+"] finished:"+str(len(target_jsons))+"; new-comers:"+str(len(q.qsize())))
+            sleep_count=0
+
+        sleep_count+=1
+        if sleep_count%10==0:
+            print("Sleep "+str(sleep_count*10)+" times...")
 
 if __name__=="__main__":
     GetPubSubStreaming()
