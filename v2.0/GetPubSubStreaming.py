@@ -79,7 +79,7 @@ def GetPubSubStreaming(dest_dir="streaming-data/"):
     while True:
         time.sleep(10)
         while q.empty()!=True:
-            print("Ready to output:"+str(len(q.qsize())))
+            print("Ready to output:"+str(q.qsize()))
             
             # get all jsons in queue
             target_jsons = []        
@@ -92,7 +92,7 @@ def GetPubSubStreaming(dest_dir="streaming-data/"):
 
             #logging
             time_stamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-            print("["+time_stamp+"] finished:"+str(len(target_jsons))+"; new-comers:"+str(len(q.qsize())))
+            print("["+time_stamp+"] finished:"+str(len(target_jsons))+"; new-comers:"+str(q.qsize()))
             sleep_count=0
 
         sleep_count+=1
