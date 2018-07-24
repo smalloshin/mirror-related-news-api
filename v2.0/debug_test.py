@@ -16,7 +16,7 @@ if __name__=="__main__":
     print("Checking:"+_id)
 
     msgname = "news-id-tfidf50-topic-category.msg"
-    resultname = "related-news-pysparnn-"+"20180720.result"   #datetime.date.today().strftime("%Y%m%d")+".result"
+    resultname = "related-news-pysparnn-"+datetime.date.today().strftime("%Y%m%d")+".result"
 
     if mode=="pubsub":
         msgname="pubsub-"+msgname
@@ -36,9 +36,4 @@ if __name__=="__main__":
         if news_id==_id:
             print("related news:",related_news)
             break
-
-    
-
-
-    
 
