@@ -73,12 +73,15 @@ def BuildIndexTree(fv,id_list,k=20,mode="batch",pkl_dir = 'intermediate-results/
     # generate a list for related news
     # [[(dist_11,id_11),(dist_12,id_12),...],[(dist_21,id_21),(dist_22,id_22)...],...   ]
     knn_news = cp.search(fv,k=k+1,return_distance=True)
+    i = 0
     for x in knn_news:
-        news_id = x[0][1]
-        related_news_json = json.dumps(x[1:-1])
+        news_id = id_list[i]
+        related_news_list = [ y for y in x if y[1] != news_id ]
+        related_news_json = json.dumps(related_news_list)
         g.write(news_id+"\t"+related_news_json+"\n")
         if mode=="pubsub":
             h.write(news_id+"\t"+related_news_json+"\n")
+        i += 1
     print(time.time()-t)
 
     print "The related news are in: "+dest_dir+output_filename
